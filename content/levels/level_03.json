@@ -1,0 +1,138 @@
+{
+  "name": "Bamboo Switchbacks",
+  "start_gold": 220,
+  "lives": 20,
+  "hp_mult": 1.0,
+  "waves": [
+    {
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 12,
+          "gap": 1.0,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "splitter",
+          "count": 6,
+          "gap": 2.0,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 16,
+          "gap": 0.6,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "splitter",
+          "count": 10,
+          "gap": 1.5,
+          "delay": 0.0
+        },
+        {
+          "enemy": "grunt",
+          "count": 8,
+          "gap": 1.2,
+          "delay": 3
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 8,
+          "gap": 1.6,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "splitter",
+          "count": 14,
+          "gap": 1.1,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 20,
+          "gap": 0.5,
+          "delay": 0.0
+        },
+        {
+          "enemy": "armored",
+          "count": 6,
+          "gap": 2.0,
+          "delay": 4
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "splitter",
+          "count": 16,
+          "gap": 1.0,
+          "delay": 0.0
+        },
+        {
+          "enemy": "grunt",
+          "count": 14,
+          "gap": 0.8,
+          "delay": 2
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 14,
+          "gap": 1.2,
+          "delay": 0.0
+        },
+        {
+          "enemy": "splitter",
+          "count": 10,
+          "gap": 1.2,
+          "delay": 6
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 30,
+          "gap": 0.4,
+          "delay": 0.0
+        },
+        {
+          "enemy": "splitter",
+          "count": 12,
+          "gap": 1.0,
+          "delay": 4
+        }
+      ]
+    }
+  ]
+}

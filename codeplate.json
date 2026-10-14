@@ -1,0 +1,38 @@
+{
+  "$schema": "https://codeplate.io/schema/codeplate-0.json",
+  "spec": 0,
+  "id": "godot-tower-defense",
+  "name": "Godot Tower Defense",
+  "version": "1.2.2",
+  "kind": "game",
+  "summary": "A complete pixel-art tower defense game in Godot 4: 4 upgradeable towers, 7 enemies, 6 levels with stars. ASCII maps, JSON content.",
+  "tags": [
+    "godot",
+    "gdscript",
+    "tower-defense",
+    "strategy",
+    "pixel-art",
+    "2d",
+    "mobile"
+  ],
+  "stack": [
+    {
+      "name": "godot",
+      "version": "4.7.2"
+    }
+  ],
+  "checks": {
+    "command": "godot --headless --path . --import && godot --headless --path . --script res://addons/codeplate/checks/run.gd",
+    "requires": [
+      "godot"
+    ]
+  },
+  "license": "CodePlate-Free-1.2",
+  "tier": "free",
+  "media": [
+    "docs/media/battle.png",
+    "docs/media/title.png",
+    "docs/media/upgrade.png",
+    "docs/media/levels.png"
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "towers": [
+    {
+      "id": "arrow",
+      "name": "Lantern Archer",
+      "icon": 0,
+      "kind": "bullet",
+      "targets": [
+        "ground",
+        "air"
+      ],
+      "sprite": "assets/towers/arrow.png",
+      "shot": "assets/projectiles/arrow.png",
+      "sound": "arrow",
+      "description": "Quick arrows at one enemy. Hits flyers.",
+      "levels": [
+        {
+          "cost": 60,
+          "damage": 7,
+          "range": 64,
+          "rate": 1.6,
+          "speed": 300
+        },
+        {
+          "cost": 70,
+          "damage": 11,
+          "range": 70,
+          "rate": 1.8,
+          "speed": 320
+        },
+        {
+          "cost": 110,
+          "damage": 17,
+          "range": 78,
+          "rate": 2.0,
+          "speed": 340
+        }
+      ]
+    },
+    {
+      "id": "cannon",
+      "name": "Bell Mortar",
+      "icon": 1,
+      "kind": "splash",
+      "targets": [
+        "ground"
+      ],
+      "sprite": "assets/towers/cannon.png",
+      "shot": "assets/projectiles/ball.png",
+      "sound": "cannon",
+      "description": "Slow shells that hurt everything they land near. Can't hit flyers.",
+      "levels": [
+        {
+          "cost": 90,
+          "damage": 14,
+          "range": 60,
+          "rate": 0.6,
+          "speed": 170,
+          "splash": 26
+        },
+        {
+          "cost": 110,
+          "damage": 24,
+          "range": 64,
+          "rate": 0.65,
+          "speed": 180,
+          "splash": 30
+        },
+        {
+          "cost": 160,
+          "damage": 38,
+          "range": 70,
+          "rate": 0.7,
+          "speed": 190,
+          "splash": 34
+        }
+      ]
+    },
+    {
+      "id": "frost",
+      "name": "Frost Lantern",
+      "icon": 2,
+      "kind": "slow",
+      "targets": [
+        "ground",
+        "air"
+      ],
+      "sprite": "assets/towers/frost.png",
+      "shot": "assets/projectiles/shard.png",
+      "sound": "frost",
+      "description": "Ice shards that slow enemies down.",
+      "levels": [
+        {
+          "cost": 70,
+          "damage": 3,
+          "range": 60,
+          "rate": 1.2,
+          "speed": 240,
+          "slow": 0.55,
+          "slow_time": 1.5
+        },
+        {
+          "cost": 80,
+          "damage": 5,
+          "range": 64,
+          "rate": 1.3,
+          "speed": 250,
+          "slow": 0.45,
+          "slow_time": 2.0
+        },
+        {
+          "cost": 120,
+          "damage": 8,
+          "range": 70,
+          "rate": 1.4,
+          "speed": 260,
+          "slow": 0.35,
+          "slow_time": 2.5
+        }
+      ]
+    },
+    {
+      "id": "sun",
+      "name": "Sun Mirror",
+      "icon": 3,
+      "kind": "ray",
+      "targets": [
+        "ground",
+        "air"
+      ],
+      "sprite": "assets/towers/sun.png",
+      "shot": "assets/projectiles/ray.png",
+      "sound": "sun",
+      "description": "A long-range sunbeam that ignores armor.",
+      "levels": [
+        {
+          "cost": 120,
+          "damage": 26,
+          "range": 96,
+          "rate": 0.5
+        },
+        {
+          "cost": 130,
+          "damage": 44,
+          "range": 104,
+          "rate": 0.55
+        },
+        {
+          "cost": 190,
+          "damage": 70,
+          "range": 112,
+          "rate": 0.6
+        }
+      ]
+    }
+  ]
+}

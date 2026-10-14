@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/battle_screen.gd" id="1_battle"]
+[ext_resource type="Script" path="res://game/map_view.gd" id="2_map"]
+[ext_resource type="Script" path="res://game/units_view.gd" id="3_units"]
+[ext_resource type="Script" path="res://game/fx.gd" id="4_fx"]
+[ext_resource type="Script" path="res://game/hud.gd" id="5_hud"]
+[ext_resource type="Script" path="res://game/cell_menu.gd" id="6_menu"]
+[ext_resource type="Script" path="res://game/result_panel.gd" id="7_result"]
+[ext_resource type="Script" path="res://game/pause_menu.gd" id="8_pause"]
+
+[node name="Battle" type="Node2D"]
+script = ExtResource("1_battle")
+
+[node name="World" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="MapView" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("2_map")
+
+[node name="Units" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("3_units")
+
+[node name="Fx" type="Node2D" parent="World"]
+unique_name_in_owner = true
+z_index = 3
+script = ExtResource("4_fx")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+script = ExtResource("5_hud")
+
+[node name="CellMenu" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+script = ExtResource("6_menu")
+
+[node name="Result" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+script = ExtResource("7_result")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+script = ExtResource("8_pause")

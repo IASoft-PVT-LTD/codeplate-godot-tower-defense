@@ -1,0 +1,132 @@
+{
+  "name": "Lantern Bridge",
+  "start_gold": 240,
+  "lives": 20,
+  "hp_mult": 1.0,
+  "waves": [
+    {
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 10,
+          "gap": 1.2,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 12,
+          "gap": 0.8,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 3,
+          "gap": 3.0,
+          "delay": 0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 14,
+          "gap": 0.9,
+          "delay": 0.0
+        },
+        {
+          "enemy": "armored",
+          "count": 3,
+          "gap": 3.0,
+          "delay": 4
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 18,
+          "gap": 0.55,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 6,
+          "gap": 1.8,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 16,
+          "gap": 0.7,
+          "delay": 0.0
+        },
+        {
+          "enemy": "runner",
+          "count": 12,
+          "gap": 0.7,
+          "delay": 4
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 10,
+          "gap": 1.5,
+          "delay": 0.0
+        },
+        {
+          "enemy": "grunt",
+          "count": 12,
+          "gap": 1.0,
+          "delay": 2
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 24,
+          "gap": 0.45,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 14,
+          "gap": 1.2,
+          "delay": 0.0
+        },
+        {
+          "enemy": "runner",
+          "count": 14,
+          "gap": 0.8,
+          "delay": 5
+        }
+      ]
+    }
+  ]
+}

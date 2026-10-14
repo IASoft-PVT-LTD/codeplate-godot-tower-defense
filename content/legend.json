@@ -1,0 +1,58 @@
+{
+  "tiles": {
+    ".": {
+      "kind": "build",
+      "tile": "grass"
+    },
+    "P": {
+      "kind": "path",
+      "tile": "path"
+    },
+    "S": {
+      "kind": "spawn",
+      "tile": "path"
+    },
+    "G": {
+      "kind": "goal",
+      "tile": "path"
+    },
+    "#": {
+      "kind": "block",
+      "tile": "rock"
+    },
+    "~": {
+      "kind": "block",
+      "tile": "water"
+    },
+    "T": {
+      "kind": "block",
+      "tile": "grass",
+      "decor": 0
+    },
+    "L": {
+      "kind": "block",
+      "tile": "grass",
+      "decor": 1
+    },
+    "B": {
+      "kind": "block",
+      "tile": "grass",
+      "decor": 2
+    },
+    "b": {
+      "kind": "block",
+      "tile": "grass",
+      "decor": 3
+    },
+    "g": {
+      "kind": "block",
+      "tile": "grass",
+      "decor": 4
+    },
+    "m": {
+      "kind": "block",
+      "tile": "grass",
+      "decor": 5
+    }
+  }
+}

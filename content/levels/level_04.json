@@ -1,0 +1,144 @@
+{
+  "name": "Crow Pass",
+  "start_gold": 240,
+  "lives": 20,
+  "hp_mult": 1.15,
+  "waves": [
+    {
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 12,
+          "gap": 1.0,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 6,
+          "gap": 1.8,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 16,
+          "gap": 0.6,
+          "delay": 0.0
+        },
+        {
+          "enemy": "flyer",
+          "count": 4,
+          "gap": 2.0,
+          "delay": 3
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 8,
+          "gap": 1.6,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 12,
+          "gap": 1.2,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "splitter",
+          "count": 12,
+          "gap": 1.2,
+          "delay": 0.0
+        },
+        {
+          "enemy": "flyer",
+          "count": 6,
+          "gap": 1.6,
+          "delay": 4
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 10,
+          "gap": 1.4,
+          "delay": 0.0
+        },
+        {
+          "enemy": "runner",
+          "count": 14,
+          "gap": 0.7,
+          "delay": 3
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 18,
+          "gap": 0.9,
+          "delay": 0.0
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 20,
+          "gap": 0.6,
+          "delay": 0.0
+        },
+        {
+          "enemy": "flyer",
+          "count": 10,
+          "gap": 1.2,
+          "delay": 4
+        }
+      ]
+    },
+    {
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 12,
+          "gap": 1.2,
+          "delay": 0.0
+        },
+        {
+          "enemy": "flyer",
+          "count": 14,
+          "gap": 1.0,
+          "delay": 4
+        },
+        {
+          "enemy": "runner",
+          "count": 16,
+          "gap": 0.6,
+          "delay": 8
+        }
+      ]
+    }
+  ]
+}

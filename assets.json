@@ -1,0 +1,484 @@
+{
+  "$schema": "https://codeplate.io/schema/assets-0.json",
+  "assets": [
+    {
+      "path": "assets/audio/arrow.wav",
+      "kind": "audio",
+      "use": "Arrow tower fires (bow twang and swish; plays very often)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/build.wav",
+      "kind": "audio",
+      "use": "Tower built (wooden knock then a rising chime)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/cannon.wav",
+      "kind": "audio",
+      "use": "Bell-mortar fires (deep boom with a bronze ring)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/click.wav",
+      "kind": "audio",
+      "use": "UI button press",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/coin.wav",
+      "kind": "audio",
+      "use": "Bonus gold for calling a wave early (two-tone coin ping)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/enemy_die.wav",
+      "kind": "audio",
+      "use": "An enemy dies (descending chirp and puff)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/frost.wav",
+      "kind": "audio",
+      "use": "Frost tower fires (glassy shimmer)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/hit.wav",
+      "kind": "audio",
+      "use": "Projectile hits an enemy (short thud; plays very often)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/leak.wav",
+      "kind": "audio",
+      "use": "An enemy reaches the shrine, a life is lost (sour falling buzz)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/lose.wav",
+      "kind": "audio",
+      "use": "Level lost (slow descending minor notes and a low gong)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/music_battle.wav",
+      "kind": "audio",
+      "use": "Looping music for the battle: driving D in-scale pentatonic, 120 BPM, 32 beats, 16 s",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/music_title.wav",
+      "kind": "audio",
+      "use": "Looping music for the title screen: calm D in-scale pentatonic, 72 BPM, 16 beats, 13.3 s",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/sell.wav",
+      "kind": "audio",
+      "use": "Tower sold (falling coin blips)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/sun.wav",
+      "kind": "audio",
+      "use": "Sun shrine beam (warm rising swell)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/upgrade.wav",
+      "kind": "audio",
+      "use": "Tower upgraded (bright pentatonic arpeggio)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/wave_clear.wav",
+      "kind": "audio",
+      "use": "Wave cleared (three soft rising bell notes)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/wave_start.wav",
+      "kind": "audio",
+      "use": "A wave begins (taiko hits and a rising horn)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/audio/win.wav",
+      "kind": "audio",
+      "use": "Level won (short pentatonic fanfare)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/enemies/armored.png",
+      "kind": "image",
+      "width": 20,
+      "height": 20,
+      "frames": 4,
+      "use": "Armored shelled beetle-oni (tanky) walk loop: 4 frames of 20x20, faces right",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/enemies/boss.png",
+      "kind": "image",
+      "width": 32,
+      "height": 32,
+      "frames": 4,
+      "use": "Horned shadow ogre boss walk loop: 4 frames of 32x32, faces right",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/enemies/flyer.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 4,
+      "use": "Flyer shadow crow wing-flap loop: 4 frames of 16x16, faces right",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/enemies/grunt.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 4,
+      "use": "Grunt shadow imp (basic enemy) walk loop: 4 frames of 16x16, faces right",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/enemies/mini.png",
+      "kind": "image",
+      "width": 12,
+      "height": 12,
+      "frames": 4,
+      "use": "Mini shadow blob, the splitter's spawn: 4 frames of 12x12, faces right",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/enemies/runner.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 4,
+      "use": "Runner shadow (fast, lean) run loop: 4 frames of 16x16, faces right",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/enemies/splitter.png",
+      "kind": "image",
+      "width": 20,
+      "height": 20,
+      "frames": 4,
+      "use": "Splitter blobby shadow wobble loop: 4 frames of 20x20, faces right",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/fx/boom.png",
+      "kind": "image",
+      "width": 32,
+      "height": 32,
+      "frames": 6,
+      "use": "Cannon splash explosion: 6 frames of 32x32, play once",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/fx/death.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 5,
+      "use": "Shadow puff when an enemy dies: 5 frames of 16x16, play once",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/fx/frost.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 4,
+      "use": "Frost burst when ice hits: 4 frames of 16x16, play once",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/fx/hit.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 4,
+      "use": "Impact spark when a projectile lands: 4 frames of 16x16, play once",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/fx/range.png",
+      "kind": "image",
+      "width": 64,
+      "height": 64,
+      "use": "Range indicator (64x64): soft white ring with a mostly transparent inside; scale to the tower range and tint with modulate",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/fx/sparkle.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 4,
+      "use": "Gold sparkles for building and upgrading a tower: 4 frames of 16x16, play once",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/projectiles/arrow.png",
+      "kind": "image",
+      "width": 8,
+      "height": 8,
+      "use": "Arrow projectile (8x8), points right; rotate the sprite to aim",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/projectiles/ball.png",
+      "kind": "image",
+      "width": 8,
+      "height": 8,
+      "use": "Cannon shell (8x8), a dark iron ball with an ember spark",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/projectiles/ray.png",
+      "kind": "image",
+      "width": 16,
+      "height": 4,
+      "use": "Sun beam segment (16x4), uniform along its length so it can be stretched horizontally",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/projectiles/shard.png",
+      "kind": "image",
+      "width": 8,
+      "height": 8,
+      "use": "Ice shard projectile (8x8), points right; rotate the sprite to aim",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/tiles/decor.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "frames": 6,
+      "use": "Scenery props, 6 frames of 24x24 (transparent): pine, stone lantern, bamboo, bush, torii gate piece, moss stones",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/tiles/goal.png",
+      "kind": "image",
+      "width": 48,
+      "height": 48,
+      "use": "The shrine to defend: a small hall behind a glowing torii gate (48x48, transparent corners)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/tiles/grass.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "frames": 4,
+      "use": "Buildable ground, 4 variants of 24x24 (opaque, low contrast, each tiles seamlessly with every other)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/tiles/path.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "frames": 4,
+      "use": "Enemy road, 4 packed-earth variants of 24x24 (opaque, seamless; a slightly darker 1px rim runs inside all four sides)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/tiles/rock.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "frames": 4,
+      "use": "Unbuildable rocks and cliff, 4 variants of 24x24 (opaque)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/tiles/spawn.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "use": "Enemy spawn: a dark cave mouth with glowing eyes (24x24, transparent corners)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/tiles/water.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "frames": 2,
+      "use": "Unbuildable pond water, 2-frame shimmer loop of 24x24 (opaque, seamless)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/towers/arrow.png",
+      "kind": "image",
+      "width": 24,
+      "height": 32,
+      "frames": 3,
+      "use": "Arrow tower (lantern archer post), levels 1-3 as 3 frames of 24x32; base on the bottom 24 px, does not rotate",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/towers/base.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "use": "Stone plinth drawn under every tower (24x24, one map cell)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/towers/cannon.png",
+      "kind": "image",
+      "width": 24,
+      "height": 32,
+      "frames": 3,
+      "use": "Cannon tower (bronze bell-mortar), levels 1-3 as 3 frames of 24x32; base on the bottom 24 px, does not rotate",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/towers/frost.png",
+      "kind": "image",
+      "width": 24,
+      "height": 32,
+      "frames": 3,
+      "use": "Frost tower (blue crystal lantern), levels 1-3 as 3 frames of 24x32; base on the bottom 24 px, does not rotate",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/towers/sun.png",
+      "kind": "image",
+      "width": 24,
+      "height": 32,
+      "frames": 3,
+      "use": "Sun tower (golden mirror shrine), levels 1-3 as 3 frames of 24x32; base on the bottom 24 px, does not rotate",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/font.fnt",
+      "kind": "font",
+      "use": "BMFont description of font.png (glyph positions); the theme's default font. Regenerate it if the sheet layout changes",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/font.png",
+      "kind": "font",
+      "use": "Monospace bitmap font: 96x48 grid of 16 columns x 6 rows of 6x8 cells covering ASCII 32..127 in row-major order; white 5x7 glyphs with the baseline on cell row 6 (descenders use row 7), meant to be tinted in code",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/icon.png",
+      "kind": "image",
+      "width": 64,
+      "height": 64,
+      "use": "App icon (project.godot config/icon): a glowing paper lantern before a torii gate, 64x64",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/icons.png",
+      "kind": "image",
+      "width": 12,
+      "height": 12,
+      "frames": 6,
+      "use": "HUD icons, 6 frames of 12x12, in this order: gold coin, heart, wave flag, play, fast-forward, pause",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/lock.png",
+      "kind": "image",
+      "width": 12,
+      "height": 12,
+      "use": "Locked level padlock (12x12)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/star.png",
+      "kind": "image",
+      "width": 16,
+      "height": 16,
+      "frames": 2,
+      "use": "Level rating star: empty, then full (2 frames of 16x16)",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/title_bg.png",
+      "kind": "image",
+      "width": 480,
+      "height": 270,
+      "use": "Title screen backdrop, 480x270, opaque: a night mountain shrine with lanterns; the top third is calm sky for the title",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/ui/tower_icons.png",
+      "kind": "image",
+      "width": 24,
+      "height": 24,
+      "frames": 4,
+      "use": "Build-menu tower icons, 4 frames of 24x24 on dark rounded backings, in this order: arrow, cannon, frost, sun",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    }
+  ]
+}

@@ -23,4 +23,5 @@
 | Keys | `DEFAULT_KEYS` in `autoload/game.gd` | — |
 | Sounds and music | `assets/audio/`, `autoload/audio.gd` | `recipes/replace-sounds-and-music.md` |
 | Build for desktop, web or phones | export presets | `recipes/export.md` |
+| Export for Android (package name, icons, version, debug APK) | `export_presets.cfg`, `assets/launcher/*.png` | `recipes/export-android.md` |
 | Music and effects volume, fullscreen, credits | `CREDITS.md`; settings in `autoload/game.gd` (the screen itself is in `addons/codeplate/ui/`) | — |

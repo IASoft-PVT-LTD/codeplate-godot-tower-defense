@@ -2,6 +2,33 @@
   "$schema": "https://codeplate.io/schema/assets-0.json",
   "assets": [
     {
+      "path": "assets/launcher/adaptive_background.png",
+      "kind": "image",
+      "width": 432,
+      "height": 432,
+      "use": "Android adaptive icon, background layer (432x432, fully opaque). Generated placeholder: replace it",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/launcher/adaptive_foreground.png",
+      "kind": "image",
+      "width": 432,
+      "height": 432,
+      "use": "Android adaptive icon, foreground layer (432x432; keep the picture inside the central 288x288, the launcher crops the rest). Generated placeholder: replace it",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
+      "path": "assets/launcher/adaptive_monochrome.png",
+      "kind": "image",
+      "width": 432,
+      "height": 432,
+      "use": "Android 13+ themed icon (432x432, white shape on transparent; the system recolors it). Generated placeholder: replace it",
+      "license": "CodePlate-original",
+      "credit": "CodePlate"
+    },
+    {
       "path": "assets/audio/arrow.wav",
       "kind": "audio",
       "use": "Arrow tower fires (bow twang and swish; plays very often)",

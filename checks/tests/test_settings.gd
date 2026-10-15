@@ -92,3 +92,15 @@ func _make_progress() -> void:
 
 func _has_progress() -> bool:
 	return Game.total_stars() > 0
+
+
+func test_title_hint_has_touch_wording() -> void:
+	# The hint under the buttons names keys on a computer and taps on a touch screen.
+	var title := await _title()
+	var hint := title.get_node("Rows/Hint") as Label
+	title.call("set_hint", true)
+	for word: String in ["ESC", "SPACE", "WASD", "KEYS", "1/2/3"]:
+		expect(not hint.text.contains(word), "touch hint doesn't mention the key \"%s\": %s" % [word, hint.text])
+	title.call("set_hint", false)
+	expect(hint.text != "" and (hint.text.contains("KEY") or hint.text.contains("ESC")), "keyboard hint names keys: %s" % hint.text)
+	title.queue_free()

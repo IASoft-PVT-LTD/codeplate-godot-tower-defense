@@ -4,10 +4,16 @@ extends Control
 
 const LOGO_MAX_WIDTH := 440.0
 
+## The hint under the buttons: keys on a computer, touch wording on a phone or tablet
+## (`config/game_config.tres` touch_controls decides in the platformer).
+const HINT_KEYS := "TAP A TILE TO BUILD  -  NUMBER KEYS BUILD  -  SPACE NEXT WAVE  -  F SPEED"
+const HINT_TOUCH := "TAP A TILE TO BUILD  -  TAP START FOR THE NEXT WAVE  -  TAP SPEED"
+
 @onready var _logo: Label = %Logo
 @onready var _stars: Label = %Stars
 @onready var _play: Button = %PlayButton
 @onready var _settings: Button = %SettingsButton
+@onready var _hint: Label = $Rows/Hint
 
 
 func _ready() -> void:
@@ -19,8 +25,19 @@ func _ready() -> void:
 		Audio.play(&"click")
 		Game.goto_levels())
 	_settings.pressed.connect(open_settings)
+	set_hint(is_touch())
 	Audio.play_music(&"title")
 	_play.grab_focus.call_deferred()
+
+
+## True on phones and tablets: a touch screen is present or this is a mobile export.
+static func is_touch() -> bool:
+	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
+
+
+## Shows the touch wording or the keyboard wording (checks call this with both).
+func set_hint(touch: bool) -> void:
+	_hint.text = HINT_TOUCH if touch else HINT_KEYS
 
 
 ## Shrinks the logo until the game name fits on one line.

@@ -3,9 +3,19 @@ extends CheckCase
 ## - every file listed in assets.json exists, is imported and has the listed size
 ## - every file under assets/ is listed in assets.json
 ## - every res:// path written in code, scenes and resources exists
+## - every export preset in export_presets.cfg ships the data files the game reads
+##   at runtime (JSON, text, CSV, Markdown: none of them is a Godot resource, so an
+##   export drops them unless the preset's include_filter names them)
 ## Part of the CodePlate add-on.
 
 const SCAN_EXTENSIONS := ["gd", "tscn", "tres", "godot"]
+## Files with these extensions are data, not Godot resources: exports leave them out unless included.
+const DATA_EXTENSIONS := ["json", "txt", "csv", "md", "xml", "yaml", "yml"]
+## Folders whose data files never ship in a game (docs, the checks, tools, local output).
+const NON_RUNTIME_DIRS := ["docs/", "checks/", "tools/", "shots/", "export/", "build/", "node_modules/",
+	"addons/codeplate/checks/", "addons/codeplate/tools/", "addons/codeplate/README.md"]
+## Data files at the project root the game reads (the credits page, the license check, the sprite sizes).
+const ROOT_RUNTIME_FILES := ["CREDITS.md", "LICENSE.md", "assets.json"]
 
 
 func test_assets_json_matches_files() -> void:
@@ -43,6 +53,64 @@ func test_every_res_path_exists() -> void:
 			if "%" in path:
 				continue
 			expect(FileAccess.file_exists(path) or ResourceLoader.exists(path), "%s refers to missing %s" % [f, path])
+
+
+func test_export_presets_ship_runtime_data() -> void:
+	# A preset that leaves out levels or content exports a game that starts empty
+	# ("0 LEVELS"). This runs for every preset in export_presets.cfg, so it also
+	# catches a new data folder or file type added later.
+	if not FileAccess.file_exists("res://export_presets.cfg"):
+		return
+	var cfg := ConfigFile.new()
+	if not expect(cfg.load("res://export_presets.cfg") == OK, "export_presets.cfg parses"):
+		return
+	var needed := runtime_data_files()
+	for section: String in cfg.get_sections():
+		if not section.begins_with("preset.") or section.ends_with(".options"):
+			continue
+		var preset := str(cfg.get_value(section, "name", section))
+		if str(cfg.get_value(section, "export_filter", "all_resources")) != "all_resources":
+			continue # a hand-picked list of resources: the user chose what ships
+		var include := str(cfg.get_value(section, "include_filter", ""))
+		var exclude := str(cfg.get_value(section, "exclude_filter", ""))
+		for rel: String in needed:
+			expect(filter_matches(rel, include) and not filter_matches(rel, exclude),
+				"export preset \"%s\" ships %s (add its type to include_filter, or take it off exclude_filter)" % [preset, rel])
+		var options := section + ".options"
+		if cfg.has_section(options):
+			for key: String in cfg.get_section_keys(options):
+				var v: Variant = cfg.get_value(options, key)
+				if v is String and (v as String).begins_with("res://"):
+					expect(FileAccess.file_exists(v), "export preset \"%s\": %s = %s exists" % [preset, key, v])
+
+
+## Data files (relative to res://) a game ships: every JSON, text, CSV or Markdown
+## file outside the docs, checks and tools folders, and at the project root only
+## CREDITS.md, LICENSE.md and assets.json.
+static func runtime_data_files() -> PackedStringArray:
+	var out: PackedStringArray = []
+	for path: String in files_under("res://", DATA_EXTENSIONS):
+		var rel := path.trim_prefix("res://")
+		var skip := false
+		for d: String in NON_RUNTIME_DIRS:
+			if rel.begins_with(d):
+				skip = true
+		if "/" not in rel and rel not in ROOT_RUNTIME_FILES:
+			skip = true
+		if not skip:
+			out.append(rel)
+	return out
+
+
+## Whether `rel` (a path relative to res://) matches one of the comma-separated
+## export filters: a glob over the whole path or over the file name, as in Godot's
+## export dialog ("*.json", "levels/*.txt", "CREDITS.md"). `*` also matches "/".
+static func filter_matches(rel: String, filters: String) -> bool:
+	for raw: String in filters.split(","):
+		var f := raw.strip_edges().trim_prefix("res://")
+		if not f.is_empty() and (rel.matchn(f) or rel.get_file().matchn(f)):
+			return true
+	return false
 
 
 ## Width and height from a PNG header, or ZERO if the file is not a PNG.

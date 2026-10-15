@@ -123,6 +123,7 @@ The checks cover:
 - `docs/recipes/add-touch-polish.md`: bigger touch targets, long-press, drag to build.
 - `docs/recipes/replace-sounds-and-music.md`: sounds and music.
 - `docs/recipes/export.md`: build for desktop, web or mobile.
+- `docs/recipes/export-android.md`: export a debug APK for a phone or emulator (the preset is included); package name, icons, and what a Play release needs.
 
 **Credits** live in `CREDITS.md`, shown on title > Settings > Credits (the shared screen in `addons/codeplate/ui/`). Keep its first line, "Built with CodePlate (codeplate.io)", and add a line for every asset the user brings in.
 

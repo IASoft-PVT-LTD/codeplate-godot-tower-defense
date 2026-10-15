@@ -12,7 +12,7 @@ Use when the user wants a playable build for desktop, web or mobile.
    platform="Web"
    runnable=true
    export_filter="all_resources"
-   include_filter="*.json, *.txt, CREDITS.md"
+   include_filter="*.json, *.txt, CREDITS.md, LICENSE.md"
    exclude_filter="checks/*, tools/*, docs/*"
    export_path="export/web/index.html"
 
@@ -24,14 +24,14 @@ Use when the user wants a playable build for desktop, web or mobile.
    platform="Windows Desktop"
    runnable=true
    export_filter="all_resources"
-   include_filter="*.json, *.txt, CREDITS.md"
+   include_filter="*.json, *.txt, CREDITS.md, LICENSE.md"
    exclude_filter="checks/*, tools/*, docs/*"
    export_path="export/windows/MyGame.exe"
 
    [preset.1.options]
    binary_format/embed_pck=false
    ```
-   - `include_filter` matters: the game reads `content/` (JSON and the ASCII maps), `assets.json` (sprite frame sizes) and `CREDITS.md` (the Credits page) at runtime, and none of them is a Godot resource. Without the filter the exported game starts with no content and its credits fall back to the CodePlate line alone.
+   - `include_filter` matters: the game reads `content/` (JSON and the ASCII maps), `assets.json` (sprite frame sizes) and `CREDITS.md` (the Credits page) and `LICENSE.md` (which decides whether the CodePlate credit shows) at runtime, and none of them is a Godot resource. Without the filter the exported game starts with no content and its credits fall back to the CodePlate line alone.
    - `thread_support=false` makes the web build single-threaded, so it runs on any static host. Threaded builds need the COOP/COEP headers set on the server.
 3. **Export headless:**
    ```
@@ -44,7 +44,8 @@ Use when the user wants a playable build for desktop, web or mobile.
    - **Desktop:** the window opens at 1440×810 (3× the pixel view); `window_width_override` / `window_height_override` in `project.godot` change that.
    - **Phones:** see `add-touch-polish.md` (bigger targets, landscape only). The HUD has pause and speed buttons.
    - **macOS:** builds need signing and notarizing for distribution, with the user's Apple developer account.
-   - **Android/iOS:** need their SDKs and developer accounts. Follow Godot's docs with the user.
+   - **Android:** see `export-android.md` (the project ships an Android preset).
+   - **iOS:** needs a Mac with Xcode and an Apple developer account.
 
 ## Verify
 

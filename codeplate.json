@@ -3,7 +3,7 @@
   "spec": 0,
   "id": "godot-tower-defense",
   "name": "Godot Tower Defense",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "kind": "game",
   "summary": "A complete pixel-art tower defense game in Godot 4: 4 upgradeable towers, 7 enemies, 6 levels with stars. ASCII maps, JSON content.",
   "tags": [
@@ -27,7 +27,7 @@
       "godot"
     ]
   },
-  "license": "CodePlate-Free-1.2",
+  "license": "CodePlate-Free-1.3",
   "tier": "free",
   "media": [
     "docs/media/battle.png",

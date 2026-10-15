@@ -1,6 +1,6 @@
 # Godot Tower Defense: a CodePlate template
 
-> **Free CodePlate template, v1.2.2.** This repository mirrors the zip on [codeplate.io](https://codeplate.io/t/godot-tower-defense/).
+> **Free CodePlate template, v1.2.3.** This repository mirrors the zip on [codeplate.io](https://codeplate.io/t/godot-tower-defense/).
 > Press **Use this template** to start your own repository from it, or [download the zip](https://codeplate.io/t/godot-tower-defense/).
 > [All templates](https://codeplate.io/) · [Free License](https://codeplate.io/license/free/) · subscribers get it under the [Pro License](https://codeplate.io/license/pro/) with no credit.
 

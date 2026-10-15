@@ -9,6 +9,8 @@ signal pause_pressed
 
 const ICONS := "assets/ui/icons.png" # coin, heart, flag, play, fast, pause
 const HEIGHT := 30.0
+## The button's text before the first wave (checks read it from here).
+const START_TEXT := "START"
 
 var battle: Battle
 var _gold: Label
@@ -68,7 +70,7 @@ func _process(_delta: float) -> void:
 	_wave.text = "WAVE %d/%d" % [battle.wave, battle.total_waves()]
 	if battle.state == Battle.State.BUILDING:
 		_next.visible = true
-		_next.text = "START"
+		_next.text = START_TEXT
 	elif battle.seconds_to_next_wave() >= 0.0:
 		_next.visible = true
 		_next.text = "NEXT +%d" % battle.early_bonus()

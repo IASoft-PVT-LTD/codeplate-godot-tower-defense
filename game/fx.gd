@@ -20,10 +20,9 @@ func burst(path: String, pos: Vector2, fps: float = 16.0, scale_by: float = 1.0)
 		f.remove_animation(&"default")
 		Sprites.add_strip(f, &"fx", path, fps, false)
 		_frames[path] = f
-	var s := AnimatedSprite2D.new()
-	s.sprite_frames = _frames[path]
+	var s := Sprites.animated(_frames[path], path)
 	s.position = pos
-	s.scale = Vector2.ONE * scale_by
+	s.scale *= scale_by
 	add_child(s)
 	s.play(&"fx")
 	s.animation_finished.connect(s.queue_free)
@@ -31,13 +30,12 @@ func burst(path: String, pos: Vector2, fps: float = 16.0, scale_by: float = 1.0)
 
 ## A beam from `a` to `b` that fades out (`path` is a short horizontal strip).
 func ray(path: String, a: Vector2, b: Vector2) -> void:
-	var s := Sprite2D.new()
-	s.texture = Sprites.texture(path)
+	var s := Sprites.sprite(path) # the asset's "scale" sets the beam's thickness
 	s.centered = false
 	s.offset = Vector2(0, -s.texture.get_height() * 0.5)
 	s.position = a
 	s.rotation = (b - a).angle()
-	s.scale = Vector2(a.distance_to(b) / s.texture.get_width(), 1.0)
+	s.scale.x = a.distance_to(b) / s.texture.get_width() # stretched to span a..b
 	add_child(s)
 	var tw := create_tween()
 	tw.tween_property(s, "modulate:a", 0.0, 0.25)

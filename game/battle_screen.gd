@@ -51,8 +51,7 @@ func _ready() -> void:
 	result.retry_pressed.connect(func() -> void: Game.start_level(Game.level_index))
 	result.levels_pressed.connect(Game.goto_levels)
 	pause_menu.quit_pressed.connect(Game.goto_levels)
-	_ring = Sprite2D.new()
-	_ring.texture = Sprites.texture(RANGE_ART)
+	_ring = Sprites.sprite(RANGE_ART) # scaled to the range in _update_ring()
 	_ring.visible = false
 	_ring.modulate = Color(1.0, 0.85, 0.5, 0.8)
 	_ring.z_index = 5
@@ -221,8 +220,11 @@ func _on_event(e: SimEvent) -> void:
 			var sound := str(d.get("sound", ""))
 			if not sound.is_empty():
 				Audio.play(StringName(sound), randf_range(0.95, 1.05), -6.0, 6)
+			units.snap_head(Vector2i((e.pos / GameConfig.CELL).floor()))
 			if str(d.get("kind", "")) == "ray":
-				fx.ray(str(d.get("shot", "")), e.pos - Vector2(0, 10), e.target)
+				var muzzle := Game.content.muzzle(e.tag, int(e.value))
+				var start := e.pos + (e.target - e.pos).normalized() * muzzle if muzzle > 0.0 else e.pos - Vector2(0, 10)
+				fx.ray(str(d.get("shot", "")), start, e.target)
 		SimEvent.Type.HIT:
 			Audio.play(&"hit", randf_range(0.9, 1.1), -12.0, 10)
 			fx.burst(Fx.HIT, e.pos + Vector2(0, -4), 24.0)

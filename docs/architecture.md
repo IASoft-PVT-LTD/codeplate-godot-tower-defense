@@ -23,7 +23,7 @@ Nothing in `core/` touches nodes, reads input or the clock, or uses the global r
 | `level_data.gd` | `LevelData`: a level's map, gold, lives, `hp_mult` and waves; `wave_spawns(i)` lists a wave's spawns in order. |
 | `entities.gd` | Plain data: `Enemy`, `Tower`, `Shot`. |
 | `event.gd` | `SimEvent`: what a step reports (type, position, value, tag, target). |
-| `bot.gd` | `Bot.play()` plays a whole level: builds from `BUILD_ORDER` on the cells covering the most path, upgrades once it has `UPGRADE_FROM` towers. Used by the balance check, `tools/balance.gd` and the screenshot hooks. |
+| `bot.gd` | `Bot.play()` plays a whole level: builds in the order of `towers.json`'s `bot_order` on the cells covering the most path (of every route), upgrades once it has `UPGRADE_FROM` towers. Used by the balance check, `tools/balance.gd` and the screenshot hooks. |
 
 ### Enemies move by distance
 
@@ -39,12 +39,12 @@ Each enemy has `progress`: the pixels it has travelled. Its position comes from 
 |---|---|
 | `battle_screen.gd` / `.tscn` | `BattleScreen`: the tick loop and speed (`take_ticks()`: whole ticks per frame, fractional speeds averaged exactly), input (taps open menus; keys act on the menu's cell or the hovered one), events to sound and effects, the range ring and hover cursor, finishing a level. `MAP_ORIGIN` puts the map below the HUD. |
 | `map_view.gd` | Tiles, decorations, the spawn and the goal. |
-| `units_view.gd` | Towers (on a base, frame = level), enemies (one sprite each, flipped by direction, tinted when slowed), shots (pooled by id), health bars. |
+| `units_view.gd` | Towers (on a base, frame = level; with a `base` in the content, a turning head), enemies (one sprite each, flipped by direction or, with `view: top`, turned to their heading; tinted when slowed), shots (pooled by id), health bars. |
 | `hud.gd` | Gold, lives, wave, START / NEXT (+bonus), speed, pause, announcements. |
 | `cell_menu.gd` | The build menu (one button per tower) and the tower menu (upgrade, sell, targeting). |
 | `result_panel.gd`, `pause_menu.gd`, `overlays.gd` | Victory/defeat, pause, and shared panel helpers. |
 | `fx.gd` | Bursts, rays and floating text. |
-| `sprites.gd` | Reads frame sizes from `assets.json` and cuts strips into frames. |
+| `sprites.gd` | Reads frame sizes, `scale` and `smooth` from `assets.json` and cuts strips into frames; every sprite the game draws is made through it. |
 
 ## autoload/
 

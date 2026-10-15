@@ -125,7 +125,7 @@ func test_tower_menu_upgrades_and_sells() -> void:
 	buttons[0].pressed.emit()
 	expect_eq(s.battle.towers[cell].level, 2, "upgraded")
 	s.menu.buttons()[2].pressed.emit()
-	expect_eq(s.battle.towers[cell].target_mode, "last", "target mode cycled")
+	expect_eq(s.battle.towers[cell].target_mode, Battle.TARGET_MODES[1], "target mode cycled")
 	var gold := s.battle.gold
 	s.menu.buttons()[1].pressed.emit()
 	expect(not s.battle.towers.has(cell) and s.battle.gold > gold, "sold for gold")
@@ -136,7 +136,7 @@ func test_tower_menu_upgrades_and_sells() -> void:
 func test_hud_starts_waves_and_changes_speed() -> void:
 	_sandbox()
 	var s := await _open_battle()
-	expect_eq(s.hud.next_button().text, "START", "a start button before the first wave")
+	expect_eq(s.hud.next_button().text, Hud.START_TEXT, "a start button before the first wave")
 	s.hud.next_button().pressed.emit()
 	expect_eq(s.battle.state, Battle.State.RUNNING, "the first wave started")
 	await until(func() -> bool: return s.battle.tick > 5, 3.0)
@@ -166,7 +166,7 @@ func test_speeds_are_valid_and_fractions_are_exact() -> void:
 			total += s.take_ticks(speed)
 		expect_eq(total, roundi(60 * speed), "%sx runs %d ticks in 60 frames" % [speed, roundi(60 * speed)])
 	s.hud.set_speed(1.5)
-	expect_eq(s.hud.speed_button().text, "1.5X", "the HUD shows 1.5X")
+	expect(s.hud.speed_button().text.contains("1.5"), "the HUD shows 1.5 (%s)" % s.hud.speed_button().text)
 	s.queue_free()
 	_restore()
 

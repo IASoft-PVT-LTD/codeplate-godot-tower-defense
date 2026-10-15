@@ -13,10 +13,16 @@ const KIND_FIELDS := {
 	"ray": ["cost", "damage", "range", "rate"],
 }
 const ENEMY_FIELDS := ["hp", "speed", "bounty", "sprite"]
+## How an enemy's art is drawn: "side" (stands, flips to face its way) or
+## "top" (seen from above, turns to its heading).
+const ENEMY_VIEWS := ["side", "top"]
 
 var towers: Array[Dictionary] = []
 var enemies: Array[Dictionary] = []
 var legend: Dictionary = {}
+## Tower ids in the order the balance bot builds them (repeats). From
+## towers.json "bot_order"; without it, every tower once in file order.
+var bot_order: Array[String] = []
 var levels: Array[LevelData] = []
 var _by_id: Dictionary = {}
 
@@ -85,6 +91,10 @@ static func from_data(data: Dictionary, errors: PackedStringArray) -> Content:
 			continue
 		if str(t.get("sprite", "")).is_empty():
 			errors.append("%s: needs a \"sprite\" (its art in assets/towers/)" % where)
+		if t.has("base") and str(t["base"]).is_empty():
+			errors.append("%s: \"base\" must be an art path (or leave it out for the shared plinth)" % where)
+		if t.has("muzzle") and (not t["muzzle"] is Array or (t["muzzle"] as Array).size() != t.get("levels", []).size()):
+			errors.append("%s: \"muzzle\" must list one barrel length per level (%d)" % [where, t.get("levels", []).size()])
 		var targets: Array = t.get("targets", ["ground", "air"])
 		if targets.is_empty() or targets.any(func(x: Variant) -> bool: return str(x) not in ["ground", "air"]):
 			errors.append("%s: \"targets\" must list \"ground\" and/or \"air\"" % where)
@@ -103,6 +113,8 @@ static func from_data(data: Dictionary, errors: PackedStringArray) -> Content:
 		for f: String in ENEMY_FIELDS:
 			if not e.has(f):
 				errors.append("enemies.json \"%s\": missing \"%s\"" % [e["id"], f])
+		if str(e.get("view", "side")) not in ENEMY_VIEWS:
+			errors.append("enemies.json \"%s\": \"view\" must be \"side\" or \"top\"" % e["id"])
 		c.enemies.append(e)
 	var enemy_ids := c.enemies.map(func(e: Dictionary) -> String: return str(e["id"]))
 	for e: Dictionary in c.enemies:
@@ -117,6 +129,9 @@ static func from_data(data: Dictionary, errors: PackedStringArray) -> Content:
 		var kind := str((c.legend[ch] as Dictionary).get("kind", ""))
 		if kind not in ["build", "path", "block", "spawn", "goal"]:
 			errors.append("legend.json \"%s\": kind must be build, path, block, spawn or goal" % ch)
+		var route: Variant = (c.legend[ch] as Dictionary).get("route", 0)
+		if not (route is float or route is int) or int(route) < 0 or float(route) != int(route):
+			errors.append("legend.json \"%s\": \"route\" must be a whole number, 0 or more" % ch)
 
 	for l: Variant in data.get("levels", []):
 		var where := "levels/%s" % l.get("id", "?")
@@ -133,11 +148,26 @@ static func from_data(data: Dictionary, errors: PackedStringArray) -> Content:
 					errors.append("%s.json: wave %d: enemy \"%s\" isn't in enemies.json" % [where, wi + 1, g.get("enemy", "")])
 				if int(g.get("count", 0)) < 1:
 					errors.append("%s.json: wave %d: \"count\" must be at least 1" % [where, wi + 1])
+				var route := int(g.get("route", 0))
+				if map != null and (route < 0 or route >= map.route_count()):
+					errors.append("%s.json: wave %d: route %d isn't on the map (it has %d)" % [where, wi + 1, route, map.route_count()])
 		if map != null:
 			var ld := LevelData.make(str(l.get("id", "")), str(l.get("name", l.get("id", ""))), map,
 				int(l.get("start_gold", 100)), int(l.get("lives", 20)), waves)
 			ld.hp_mult = float(l.get("hp_mult", 1.0))
 			c.levels.append(ld)
+
+	var tower_ids: Array[String] = []
+	for t: Dictionary in c.towers:
+		tower_ids.append(str(t["id"]))
+	var order: Variant = data.get("towers", {}).get("bot_order", tower_ids)
+	if not order is Array or ((order as Array).is_empty() and not tower_ids.is_empty()):
+		errors.append("towers.json: \"bot_order\" must list tower ids (or leave it out for file order)")
+	else:
+		for id: Variant in order:
+			if str(id) not in tower_ids:
+				errors.append("towers.json: bot_order names \"%s\", which isn't a tower" % id)
+			c.bot_order.append(str(id))
 
 	for list: Array in [c.towers, c.enemies]:
 		for e: Dictionary in list:
@@ -153,6 +183,15 @@ func get_entry(id: String) -> Dictionary:
 func tower_level(id: String, level: int) -> Dictionary:
 	var levels: Array = get_entry(id).get("levels", [{}])
 	return levels[clampi(level - 1, 0, levels.size() - 1)]
+
+
+## How far (view pixels) the end of a tower's barrel is from its centre at a
+## level, from its optional "muzzle" list; 0 without one.
+func muzzle(id: String, level: int) -> float:
+	var list: Array = get_entry(id).get("muzzle", [])
+	if list.is_empty():
+		return 0.0
+	return float(list[clampi(level - 1, 0, list.size() - 1)])
 
 
 func tower_max_level(id: String) -> int:

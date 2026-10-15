@@ -66,6 +66,9 @@ func _run() -> void:
 	if out.begins_with("res://") or out.begins_with("user://"):
 		out = ProjectSettings.globalize_path(out)
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())
+	var shots := ProjectSettings.globalize_path("res://shots")
+	if DirAccess.dir_exists_absolute(shots) and not FileAccess.file_exists(shots.path_join(".gdignore")):
+		FileAccess.open(shots.path_join(".gdignore"), FileAccess.WRITE).close() # keeps screenshots out of Godot's import
 
 	var size := Vector2i(
 		int(ProjectSettings.get_setting("display/window/size/viewport_width", 1152)),

@@ -16,6 +16,8 @@ class Enemy:
 	var lives: int
 	var flying := false
 	var boss := false
+	## Which of the map's routes it walks (0 = the first).
+	var route := 0
 	## Pixels travelled along the path (or the flight line).
 	var progress := 0.0
 	var pos := Vector2.ZERO
@@ -49,6 +51,10 @@ class Shot:
 	var target_pos: Vector2
 	var speed: float
 	var damage: float
+	## Where it was fired from and the firing tower's level (the view starts
+	## it at the end of the barrel of a tower with a "muzzle").
+	var origin := Vector2.ZERO
+	var level := 1
 	var splash := 0.0
 	var slow := 1.0
 	var slow_ticks := 0

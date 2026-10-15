@@ -4,6 +4,8 @@ All content is in `content/`. `Content` validates it at startup and in the check
 
 ## towers.json
 
+An optional top-level `"bot_order": ["arrow", "cannon", ...]` (beside `"towers"`) is the order the balance bot builds in, repeating. Without it the bot builds every tower once, in file order. Every id must be a tower.
+
 ```json
 {"id": "arrow", "name": "Lantern Archer", "icon": 0, "kind": "bullet", "targets": ["ground", "air"],
  "sprite": "assets/towers/arrow.png", "shot": "assets/projectiles/arrow.png", "sound": "arrow",
@@ -21,6 +23,8 @@ All content is in `content/`. `Content` validates it at startup and in the check
 | `sprite` | A strip with one 24×32 frame per level, base at the bottom. Drawn on `assets/towers/base.png`. |
 | `shot` | Projectile art pointing right (rotated toward the target); for `ray`, a short beam strip stretched to the target. |
 | `sound` | A name from `SOUNDS` in `autoload/audio.gd`, played when it fires. Optional. |
+| `base` | Optional art path (a 24×32 plinth, like `assets/towers/base.png`). With it, the tower is a fixed base plus a **turning head**: `sprite` becomes the head (art pointing right, a frame per level, centred on the cell), which eases round to face its target and snaps to it when the tower fires. Without it, the sprite stands on the shared plinth and flips left or right. |
+| `muzzle` | Optional, with `base`: one barrel length per level, in view pixels from the cell's centre. Shots (and a ray's beam) start at the end of the barrel instead of the centre. It can't be longer than half the head art's width; a check fails otherwise. |
 | `levels` | One object per level. Level 1's `cost` is the build price; later levels' `cost` is the upgrade price. |
 
 Fields per level, by kind:
@@ -47,6 +51,7 @@ Damage against armor: `max(1, damage − armor)`, except rays. A map cell is 24 
 | `speed` | px/s along the path. 24 = one cell a second. |
 | `bounty` | Gold for a kill. |
 | `armor` | Optional. Taken off each non-ray hit. |
+| `view` | Optional: `"side"` (default; the art stands on its spot and flips to face left or right) or `"top"` (seen from above: centred, and turned to face the way it walks). Top-view art points right. Anything else is a content error. |
 | `lives` | Optional (default 1). Lives lost if it reaches the goal. |
 | `flying` | Optional. Flies straight from spawn to goal, ignoring the path; only towers with `"air"` in `targets` can hit it. |
 | `splits_into`, `split_count` | Optional. When killed, spawns `split_count` of that enemy where it died. |
@@ -65,6 +70,7 @@ Maps characters in the level files to cells:
 - `kind`: `build` (towers allowed), `path`, `spawn`, `goal` or `block`.
 - `tile`: the art `assets/tiles/<tile>.png` (a strip of variants; one is picked per cell).
 - `decor`: optional frame of `assets/tiles/decor.png` drawn on top.
+- `route`: optional whole number (default 0) for `spawn` and `path` entries. Route 0 is `S` and `P`; the template also ships `R` (spawn) and `Q` (path) for route 1. Each route is its own road from its spawn to the one goal.
 
 ## levels/level_NN.txt (maps)
 
@@ -76,7 +82,7 @@ SPPPPPP......PPPPPPG
 ```
 
 - Every row is the same width. The template's maps are 20×10, which fills the 480×240 area below the HUD; bigger maps need a camera (see `add-level.md`).
-- Exactly one `S` and one `G`, joined by one path with **no forks**. Two path cells side by side count as a fork, so leave a gap between parallel stretches.
+- One `G`, and one spawn per route (`S` for route 0, `R` for route 1), each joined to `G` by its own path with **no forks**. Two path cells of one route side by side count as a fork, so leave a gap between parallel stretches. A map with just `S`, `P` and `G` has one route. More roads: `docs/recipes/add-second-path.md`.
 - Levels are played in file-name order.
 
 ## levels/level_NN.json
@@ -92,6 +98,6 @@ SPPPPPP......PPPPPPG
 | `name` | Shown on the level card and at the start. |
 | `start_gold`, `lives` | The starting purse and lives. |
 | `hp_mult` | Optional (default 1). Multiplies every enemy's health in this level: an easy difficulty knob. |
-| `waves[].groups[]` | Groups in a wave spawn in parallel: after `delay` seconds, `count` of `enemy`, one every `gap` seconds. |
+| `waves[].groups[]` | Groups in a wave spawn in parallel: after `delay` seconds, `count` of `enemy`, one every `gap` seconds. Optional `route` (default 0): which of the map's roads the group walks; a route the map lacks is an error. |
 
 The first wave starts when the player presses START. After a wave finishes spawning, the next one starts `wave_gap` seconds later (config), or earlier if the player calls it, for `early_bonus_per_second` gold per second skipped. The level is won when the last wave is cleared.

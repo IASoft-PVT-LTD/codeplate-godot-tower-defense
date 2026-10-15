@@ -8,7 +8,12 @@
 | Add or change an enemy | `content/enemies.json` | `recipes/add-enemy.md` |
 | Enemies that heal, shield or teleport | `core/battle.gd` `_move_enemies()` | `recipes/add-enemy.md` |
 | A new level or map | `content/levels/level_NN.txt` + `.json` | `recipes/add-level.md` |
-| Two or more spawns and paths | `content/legend.json`, `core/map.gd`, `core/battle.gd` | `recipes/add-second-path.md` |
+| Two or more spawns and paths | `content/legend.json` (`R`, `Q`), the map, a wave group's `route` | `recipes/add-second-path.md` |
+| A tower whose head turns, shots from the barrel's end | `content/towers.json` (`base`, `muzzle`) | `recipes/add-tower.md` |
+| Top-down enemies | `content/enemies.json` (`view`) | `recipes/add-enemy.md` |
+| Art made for another cell size, smooth art | `assets.json` (`scale`, `smooth`) | `recipes/retheme.md` |
+| Cut an art pack's atlas into strips | `tools/import_atlas.gd` | `recipes/retheme.md` |
+| The order the balance bot builds in | `content/towers.json` (`bot_order`) | `recipes/tune-balance.md` |
 | New map characters (water, bridges, props) | `content/legend.json`, `assets/tiles/` | `recipes/add-level.md` |
 | Waves, bosses, a level's difficulty | `content/levels/level_NN.json` (`waves`, `hp_mult`) | `recipes/edit-waves.md` |
 | Easier or harder overall | gold, bounties, enemy health; targets in config | `recipes/tune-balance.md` |

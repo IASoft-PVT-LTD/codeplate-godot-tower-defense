@@ -1,6 +1,19 @@
 extends CheckCase
 ## The rules in core/battle.gd, on a small made-up level so the numbers are
 ## easy to follow: a straight path 10 cells long, one tower of each kind.
+## The made-up content has its own ids and its own map legend, so these checks
+## keep working whatever the game's towers, enemies and map letters are.
+
+## The map letters these checks use (test_content.gd uses it too).
+const LEGEND := {
+	".": {"kind": "build"},
+	"#": {"kind": "block"},
+	"S": {"kind": "spawn"},
+	"P": {"kind": "path"},
+	"G": {"kind": "goal"},
+	"R": {"kind": "spawn", "route": 1},
+	"Q": {"kind": "path", "route": 1},
+}
 
 const MAP := """
 ..........
@@ -32,7 +45,7 @@ func _content(waves: Array, enemies: Array = []) -> Content:
 				{"cost": 50, "damage": 5, "range": 60, "rate": 1}]},
 		]},
 		"enemies": {"enemies": all_enemies},
-		"legend": {"tiles": Game.content.legend},
+		"legend": {"tiles": LEGEND},
 		"levels": [{"id": "t", "map": MAP, "start_gold": 100, "lives": 10, "waves": waves}],
 	}, errors)
 	assert(c != null, "\n".join(errors))
@@ -240,3 +253,329 @@ func test_same_seed_same_battle() -> void:
 		snaps.append(b.snapshot())
 	expect_eq(snaps[0], snaps[1], "two battles with the same seed and commands match")
 	expect(int(snaps[0]["kills"]) > 0, "and something happened")
+
+
+# --- Routes: several spawns, each with its own path to the goal -----------------
+
+## Route 0 runs along the bottom row; route 1 along the top and down the right side.
+const TWO_ROUTES := """
+RQQQQQ
+.....Q
+SPPPPG
+"""
+
+## Route 1 along the top and down the right; route 0 along the bottom, 5 rows away.
+const FAR_ROUTES := """
+RQQQQQQQQQ
+.........Q
+.........Q
+.........Q
+.........Q
+SPPPPPPPPG
+"""
+
+const FIXTURE_ENEMIES: Array = [
+	{"id": "dummy", "hp": 20, "speed": 24, "bounty": 5, "sprite": "x"},
+	{"id": "blob", "hp": 10, "speed": 24, "bounty": 5, "splits_into": "dummy", "split_count": 2, "sprite": "x"},
+	{"id": "bird", "hp": 20, "speed": 24, "bounty": 5, "flying": true, "sprite": "x"},
+]
+
+
+func _level_content(map: String, waves: Array, towers: Dictionary = {"towers": []}, gold: int = 0) -> Content:
+	var errors: PackedStringArray = []
+	var c := Content.from_data({
+		"towers": towers,
+		"enemies": {"enemies": FIXTURE_ENEMIES},
+		"legend": {"tiles": LEGEND},
+		"levels": [{"id": "fixture", "map": map, "start_gold": gold, "lives": 10, "waves": waves}],
+	}, errors)
+	assert(c != null, "\n".join(errors))
+	return c
+
+
+func _two_route_battle(waves: Array) -> Battle:
+	var c := _level_content(TWO_ROUTES, waves)
+	return Battle.new(c, Game.config.duplicate(), c.levels[0], 1)
+
+
+func test_a_second_route_walks_its_own_path() -> void:
+	var b := _two_route_battle([{"groups": [{"enemy": "dummy", "count": 1, "route": 1}]}])
+	expect_eq(b.map.route_count(), 2, "the map has two routes")
+	expect(b.map.route_lengths[1] > b.map.route_lengths[0], "route 1 is the longer way round")
+	b.call_wave()
+	_run(b, 0.2)
+	if not expect_eq(b.enemies.size(), 1, "the enemy spawned"):
+		return
+	var e := b.enemies[0]
+	expect_eq(e.route, 1, "it walks route 1")
+	expect(e.pos.y < GameConfig.CELL, "it starts at route 1's spawn, on the top row")
+	_run(b, 4.0)
+	expect(e.pos.y < GameConfig.CELL, "after 4 s it is still on the top row")
+	_run(b, 6.0) # route 1 is 7 cells: 168 px at 24 px/s = 7 s
+	expect_eq(b.lives, 9, "it reached the goal along route 1 and cost a life")
+
+
+func test_route_zero_is_the_default_and_a_split_keeps_its_route() -> void:
+	var b := _two_route_battle([{"groups": [{"enemy": "dummy", "count": 1}, {"enemy": "blob", "count": 1, "route": 1}]}])
+	b.call_wave()
+	_run(b, 0.2)
+	var routes := b.enemies.map(func(e: Entities.Enemy) -> int: return e.route)
+	routes.sort()
+	expect_eq(routes, [0, 1], "a group without \"route\" walks route 0")
+	var blob: Entities.Enemy = b.enemies.filter(func(e: Entities.Enemy) -> bool: return e.type == "blob")[0]
+	b._damage(blob, 99.0, "beam", true)
+	var kids := b.enemies.filter(func(e: Entities.Enemy) -> bool: return e.type == "dummy" and e.hp > 0.0 and e.route == 1)
+	expect_eq(kids.size(), 2, "what a splitter on route 1 splits into walks route 1 too")
+
+
+func test_flyers_fly_from_their_own_spawn() -> void:
+	var b := _two_route_battle([{"groups": [{"enemy": "bird", "count": 1, "route": 1}]}])
+	b.call_wave()
+	_run(b, 0.1)
+	var bird := b.enemies[0]
+	expect(bird.pos.y < GameConfig.CELL, "a flyer on route 1 starts at route 1's spawn")
+	expect(absf(b.remaining(bird) - b.map.flight_lengths[1]) < 6.0, "and its distance to go is route 1's straight line")
+
+
+func test_a_wave_on_a_route_the_map_lacks_is_an_error() -> void:
+	var errors: PackedStringArray = []
+	var c := Content.from_data({
+		"towers": {"towers": []},
+		"enemies": {"enemies": FIXTURE_ENEMIES},
+		"legend": {"tiles": LEGEND},
+		"levels": [{"id": "one", "map": MAP, "waves": [{"groups": [{"enemy": "dummy", "count": 1, "route": 1}]}]}],
+	}, errors)
+	expect(c == null and Array(errors).any(func(m: String) -> bool: return m.contains("route 1 isn't on the map")),
+		"a wave group on route 1 of a one-route map is reported (got %s)" % [errors])
+
+
+func test_a_single_route_map_is_route_zero() -> void:
+	var b := _battle([_wave("dummy")])
+	expect_eq(b.map.route_count(), 1, "one spawn, one route")
+	expect_eq(b.map.path_length, b.map.route_lengths[0], "path_length is route 0's length")
+	expect_eq(b.map.flight_length, b.map.flight_lengths[0], "flight_length is route 0's straight line")
+	expect_eq(b.map.position_at(30.0), b.map.position_at(30.0, 0), "position_at() without a route is route 0")
+
+
+# --- The balance bot reads its build order from the content ----------------------
+
+## Towers with ids the template doesn't use, as after a re-theme.
+func _bot_towers(order: Variant = null) -> Dictionary:
+	var towers := {"towers": [
+		{"id": "zap", "kind": "bullet", "sprite": "x", "levels": [{"cost": 40, "damage": 10, "range": 40, "rate": 2, "speed": 600}]},
+		{"id": "boom", "kind": "splash", "sprite": "x", "targets": ["ground"], "levels": [
+			{"cost": 60, "damage": 10, "range": 50, "rate": 1, "speed": 600, "splash": 24}]},
+	]}
+	if order != null:
+		towers["bot_order"] = order
+	return towers
+
+
+func test_the_bot_order_comes_from_the_content() -> void:
+	var waves := [{"groups": [{"enemy": "dummy", "count": 6, "gap": 1.0}]}]
+	var c := _level_content(MAP, waves, _bot_towers(), 200)
+	expect_eq(Array(c.bot_order), ["zap", "boom"], "without \"bot_order\" the bot builds in file order")
+	var o := Bot.play(c, Game.config, c.levels[0], 1)
+	expect(o.won and o.towers > 0, "the bot builds and wins with renamed towers (%d towers)" % o.towers)
+	c = _level_content(MAP, waves, _bot_towers(["boom"]), 200)
+	var b := Battle.new(c, Game.config, c.levels[0], 1)
+	Bot._think(b, {}, 0)
+	expect(not b.towers.is_empty() and b.towers.values().all(func(t: Entities.Tower) -> bool: return t.type == "boom"),
+		"with \"bot_order\": [\"boom\"] it builds only boom towers")
+	var errors: PackedStringArray = []
+	Content.from_data({"towers": _bot_towers(["zap", "laser"]), "enemies": {"enemies": FIXTURE_ENEMIES},
+		"legend": {"tiles": LEGEND}, "levels": []}, errors)
+	expect(Array(errors).any(func(m: String) -> bool: return m.contains("bot_order names \"laser\"")),
+		"an id in bot_order that isn't a tower is reported (got %s)" % [errors])
+
+
+func test_every_id_in_the_bot_order_is_a_tower() -> void:
+	var ids := Game.content.towers.map(func(t: Dictionary) -> String: return str(t["id"]))
+	expect(not Game.content.bot_order.is_empty(), "the bot has towers to build")
+	for id: String in Game.content.bot_order:
+		expect(id in ids, "bot_order's \"%s\" is in towers.json" % id)
+
+
+func test_the_bot_covers_every_route() -> void:
+	var c := _level_content(FAR_ROUTES, [
+		{"groups": [{"enemy": "dummy", "count": 4, "gap": 1.0}, {"enemy": "dummy", "count": 4, "gap": 1.0, "route": 1}]},
+		{"groups": [{"enemy": "dummy", "count": 6, "gap": 0.8, "route": 1}]}], _bot_towers(), 240)
+	var cov := Bot._coverage(c.levels[0].map, 30.0, {})
+	expect(int(cov.get(Vector2i(1, 1), 0)) > 0, "a cell next to route 1 only is worth building on")
+	var o := Bot.play(c, Game.config, c.levels[0], 1)
+	expect(o.won and o.lives >= 8, "the bot defends both routes (won: %s, %d/10 lives)" % [o.won, o.lives])
+	var idle := Bot.play(c, Game.config, c.levels[0], 1, false)
+	expect(not idle.won, "and the level can't be won without towers")
+
+
+# --- Balance what-ifs (tools/balance.gd gold= hp= margin=1) ----------------------
+
+func test_balance_what_ifs_change_only_a_copy() -> void:
+	var level := Game.content.levels[0]
+	var gold := level.start_gold
+	var copy := level.with_changes(777, level.hp_mult * 2.0)
+	expect_eq(level.start_gold, gold, "the level itself is untouched")
+	var b := Battle.new(Game.content, Game.config, copy, 1)
+	expect_eq(b.gold, 777, "a battle of the copy starts with gold=777")
+	var id := str(Game.content.enemies[0]["id"])
+	b._spawn(id, 0.0)
+	expect(is_equal_approx(b.enemies[0].max_hp, float(Game.content.get_entry(id)["hp"]) * level.hp_mult * 2.0), "and with hp= health")
+	var c := _level_content(MAP, [{"groups": [{"enemy": "dummy", "count": 8, "gap": 0.6}]}], _bot_towers(), 300)
+	var need: int = load("res://tools/balance.gd").least_gold(c, Game.config, c.levels[0])
+	var o := Bot.play(c, Game.config, c.levels[0].with_changes(need, 1.0), 1)
+	expect(need > 0 and need < 300 and o.won, "margin=1 finds the least gold the bot needs (%d)" % need)
+
+
+# --- Turning turret heads, the end of the barrel, top-down enemies ---------------
+
+## A straight road down the left column.
+const ROAD_DOWN := """
+S..
+P..
+P..
+G..
+"""
+
+
+## The template's first tower and first enemy with extra fields, on ROAD_DOWN.
+func _view_content(tower_extra: Dictionary, enemy_extra: Dictionary) -> Content:
+	var errors: PackedStringArray = []
+	var tower: Dictionary = (Game.content.towers[0] as Dictionary).duplicate(true)
+	tower.merge(tower_extra, true)
+	var enemy: Dictionary = (Game.content.enemies[0] as Dictionary).duplicate(true)
+	enemy.merge(enemy_extra, true)
+	enemy.erase("splits_into")
+	var c := Content.from_data({
+		"towers": {"towers": [tower]},
+		"enemies": {"enemies": [enemy]},
+		"legend": {"tiles": Game.content.legend},
+		"levels": [{"id": "road", "map": ROAD_DOWN, "start_gold": 500, "lives": 10,
+			"waves": [{"groups": [{"enemy": enemy["id"], "count": 2, "gap": 1.0}]}]}],
+	}, errors)
+	assert(c != null, "\n".join(errors))
+	return c
+
+
+## A battle on ROAD_DOWN with one tower built beside the road, and a view of it.
+func _view_battle(c: Content) -> Array:
+	var b := Battle.new(c, Game.config.duplicate(), c.levels[0], 1)
+	b.gold = 1000
+	b.build(str(c.towers[0]["id"]), Vector2i(1, 1))
+	var view := UnitsView.new()
+	tree.root.add_child(view)
+	view.setup(b)
+	view.sync(1.0)
+	b.call_wave()
+	return [b, view]
+
+
+## Steps until a tower fires (the head snaps like the battle screen does) and
+## returns that FIRE event, or null.
+func _step_until_fire(b: Battle, view: UnitsView, seconds: float) -> SimEvent:
+	for i: int in GameConfig.ticks(seconds):
+		view.remember()
+		for e: SimEvent in b.step():
+			if e.type == SimEvent.Type.FIRE:
+				view.snap_head(Vector2i((e.pos / GameConfig.CELL).floor()))
+				view.sync(0.0)
+				return e
+		view.sync(1.0)
+	return null
+
+
+func test_an_aimed_turret_head_turns_to_its_target() -> void:
+	var c := _view_content({"base": "assets/towers/base.png", "muzzle": [8, 9, 10]}, {})
+	var made := _view_battle(c)
+	var b: Battle = made[0]
+	var view: UnitsView = made[1]
+	var cell := Vector2i(1, 1)
+	var head := view.tower_sprite(cell)
+	expect_eq(head.rotation, 0.0, "the head starts facing right")
+	var fire := _step_until_fire(b, view, 8.0)
+	if not expect(fire != null, "the tower fired at the enemy on the road"):
+		view.queue_free()
+		return
+	var want := (b.towers[cell].aim - GameConfig.cell_center(cell)).angle()
+	expect(absf(want) > 0.3, "the target is not straight ahead of the head (%.2f rad)" % want)
+	expect(absf(angle_difference(head.rotation, want)) < 0.02, "the head turned to its target: %.2f, wanted %.2f" % [head.rotation, want])
+	expect(not head.flip_h, "a turning head is rotated, not flipped")
+	view.queue_free()
+
+
+func test_pulse_shots_leave_from_the_end_of_the_barrel() -> void:
+	var c := _view_content({"base": "assets/towers/base.png", "muzzle": [30, 30, 30]}, {})
+	var made := _view_battle(c)
+	var b: Battle = made[0]
+	var view: UnitsView = made[1]
+	var fire := _step_until_fire(b, view, 8.0)
+	if not expect(fire != null and not b.shots.is_empty(), "the tower fired a shot"):
+		view.queue_free()
+		return
+	var shot: Entities.Shot = b.shots[b.shots.size() - 1]
+	var barrel := c.muzzle(shot.tower, shot.level)
+	expect_eq(barrel, 30.0, "level 1's barrel is 30 px long (longer than a shot flies in its first tick)")
+	var sprite := view.shot_sprite(shot.id)
+	expect(sprite != null, "the shot is drawn")
+	if sprite != null:
+		expect(absf(sprite.position.distance_to(shot.origin) - barrel) < 1.5,
+			"the shot starts %.1f px from the tower's centre, at the barrel's end (%.0f px)" % [sprite.position.distance_to(shot.origin), barrel])
+		var along := (shot.target_pos - shot.origin).normalized()
+		expect((sprite.position - shot.origin).normalized().dot(along) > 0.98, "and on the line to the target")
+	# Without "muzzle" a shot leaves from the centre, as before.
+	var plain := _view_battle(_view_content({}, {}))
+	var pb: Battle = plain[0]
+	var pview: UnitsView = plain[1]
+	if _step_until_fire(pb, pview, 8.0) != null and not pb.shots.is_empty():
+		var s: Entities.Shot = pb.shots[pb.shots.size() - 1]
+		expect(pview.shot_sprite(s.id).position.distance_to(s.pos) < 1.5, "no \"muzzle\": the shot is drawn where it is, not pushed out")
+	view.queue_free()
+	pview.queue_free()
+
+
+## What's wrong with a tower's "muzzle" against its head art: a barrel can't be
+## longer than half the art's width (the head is centred on the cell and
+## points right).
+func _barrel_problems(d: Dictionary) -> PackedStringArray:
+	var out: PackedStringArray = []
+	var half := Sprites.view_size(str(d["sprite"])).x * 0.5
+	for i: int in (d.get("muzzle", []) as Array).size():
+		var m := float(d["muzzle"][i])
+		if m < 0.0 or m > half + 1.0:
+			out.append("%s: level %d barrel %.0f px doesn't fit its art (%.0f px wide)" % [d["id"], i + 1, m, half * 2.0])
+	return out
+
+
+func test_barrel_lengths_fit_the_head_art() -> void:
+	for d: Dictionary in Game.content.towers:
+		for problem: String in _barrel_problems(d):
+			expect(false, problem)
+	var fixture := (Game.content.towers[0] as Dictionary).duplicate(true)
+	fixture["muzzle"] = [8, 9, 40]
+	expect_eq(_barrel_problems(fixture).size(), 1, "a barrel longer than its art is reported")
+	fixture["muzzle"] = [8, 9, 10]
+	expect(_barrel_problems(fixture).is_empty(), "a barrel that fits passes")
+
+
+func test_a_top_down_enemy_turns_to_its_heading() -> void:
+	var made := _view_battle(_view_content({}, {"view": "top"}))
+	var b: Battle = made[0]
+	var view: UnitsView = made[1]
+	for i: int in GameConfig.ticks(1.5):
+		view.remember()
+		b.step()
+		view.sync(1.0)
+	if not expect(not b.enemies.is_empty(), "an enemy is on the road"):
+		view.queue_free()
+		return
+	var sprite := view.enemy_sprite(b.enemies[0].id)
+	expect(absf(angle_difference(sprite.rotation, PI * 0.5)) < 0.05, "walking down, it faces down: %.2f rad" % sprite.rotation)
+	view.queue_free()
+	var side := _view_battle(_view_content({}, {}))
+	var sb: Battle = side[0]
+	var sview: UnitsView = side[1]
+	for i: int in GameConfig.ticks(1.5):
+		sview.remember()
+		sb.step()
+		sview.sync(1.0)
+	expect_eq(sview.enemy_sprite(sb.enemies[0].id).rotation, 0.0, "a side-view enemy is never rotated")
+	sview.queue_free()

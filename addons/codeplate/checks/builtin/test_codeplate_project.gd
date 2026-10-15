@@ -1,11 +1,18 @@
 extends CheckCase
 ## Project-wide checks every CodePlate Godot project gets:
 ## - every file listed in assets.json exists, is imported and has the listed size
+## - its licence is one a game may ship; CodePlate's files credit CodePlate, the
+##   user's own files are "user-owned" and credit their owner; a file whose `use`
+##   calls it a placeholder or stand-in says "placeholder": true
 ## - every file under assets/ is listed in assets.json
 ## - every res:// path written in code, scenes and resources exists
 ## - every export preset in export_presets.cfg ships the data files the game reads
 ##   at runtime (JSON, text, CSV, Markdown: none of them is a Godot resource, so an
 ##   export drops them unless the preset's include_filter names them)
+## - export/ and shots/ (local output) are hidden from Godot's import and from
+##   every preset; a Web preset is single-threaded (no special server headers)
+## - the save folder (user://) has a fixed name, so renaming the game keeps saves
+## - an Android preset's app name matches the game's name
 ## Part of the CodePlate add-on.
 
 const SCAN_EXTENSIONS := ["gd", "tscn", "tres", "godot"]
@@ -14,6 +21,10 @@ const DATA_EXTENSIONS := ["json", "txt", "csv", "md", "xml", "yaml", "yml"]
 ## Folders whose data files never ship in a game (docs, the checks, tools, local output).
 const NON_RUNTIME_DIRS := ["docs/", "checks/", "tools/", "shots/", "export/", "build/", "node_modules/",
 	"addons/codeplate/checks/", "addons/codeplate/tools/", "addons/codeplate/README.md"]
+## Licences a file in a game's assets.json may have.
+const ASSET_LICENSES := ["CodePlate-original", "CC0-1.0", "OFL-1.1", "user-owned"]
+## Local output folders: never imported (a .gdignore inside) and never exported.
+const OUTPUT_DIRS := ["export", "shots"]
 ## Data files at the project root the game reads (the credits page, the license check, the sprite sizes).
 const ROOT_RUNTIME_FILES := ["CREDITS.md", "LICENSE.md", "assets.json"]
 
@@ -28,6 +39,8 @@ func test_assets_json_matches_files() -> void:
 	for a: Dictionary in data["assets"]:
 		var path := "res://" + str(a["path"])
 		listed[path] = true
+		for problem: String in asset_licence_problems(a):
+			expect(false, "assets.json %s: %s" % [a["path"], problem])
 		if not expect(FileAccess.file_exists(path), "%s exists" % path):
 			continue
 		if str(a.get("kind", "")) == "image" and path.ends_with(".png"):
@@ -82,6 +95,83 @@ func test_export_presets_ship_runtime_data() -> void:
 				var v: Variant = cfg.get_value(options, key)
 				if v is String and (v as String).begins_with("res://"):
 					expect(FileAccess.file_exists(v), "export preset \"%s\": %s = %s exists" % [preset, key, v])
+
+
+func test_local_output_stays_out_of_the_game() -> void:
+	# Without .gdignore, Godot imports the exported web icons and every screenshot,
+	# and the next export packs them into the game.
+	for d: String in OUTPUT_DIRS:
+		expect(FileAccess.file_exists("res://%s/.gdignore" % d),
+			"res://%s/.gdignore exists (an empty file: Godot then never imports %s/)" % [d, d])
+	var cfg := _export_presets()
+	if cfg == null:
+		return
+	for section: String in _presets(cfg):
+		var preset := str(cfg.get_value(section, "name", section))
+		var exclude := str(cfg.get_value(section, "exclude_filter", "")).replace(" ", "").split(",")
+		for d: String in OUTPUT_DIRS:
+			expect(("%s/*" % d) in exclude, "export preset \"%s\": exclude_filter has %s/*" % [preset, d])
+		if str(cfg.get_value(section, "platform", "")) == "Web":
+			expect(cfg.get_value(section + ".options", "variant/thread_support", true) == false,
+				"export preset \"%s\": variant/thread_support=false (threads need special server headers)" % preset)
+
+
+func test_save_folder_has_a_fixed_name() -> void:
+	# Without a custom user dir, user:// is named after config/name, so renaming
+	# the game would start every player on an empty save.
+	expect(bool(ProjectSettings.get_setting("application/config/use_custom_user_dir", false)),
+		"project.godot: application/config/use_custom_user_dir=true")
+	expect(not str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")).strip_edges().is_empty(),
+		"project.godot: application/config/custom_user_dir_name is set (a fixed folder name; never change it once people play)")
+
+
+func test_android_app_name_matches_the_game() -> void:
+	var cfg := _export_presets()
+	if cfg == null:
+		return
+	var game_name := str(ProjectSettings.get_setting("application/config/name", ""))
+	for section: String in _presets(cfg):
+		var app_name := str(cfg.get_value(section + ".options", "package/name", ""))
+		if str(cfg.get_value(section, "platform", "")) == "Android" and app_name != "":
+			expect_eq(app_name, game_name, "export preset \"%s\": package/name matches config/name (the rebrand recipe)"
+				% cfg.get_value(section, "name", section))
+
+
+## export_presets.cfg, or null when the project has none.
+static func _export_presets() -> ConfigFile:
+	var cfg := ConfigFile.new()
+	if not FileAccess.file_exists("res://export_presets.cfg") or cfg.load("res://export_presets.cfg") != OK:
+		return null
+	return cfg
+
+
+## The preset sections ("preset.0", ...) of an export_presets.cfg.
+static func _presets(cfg: ConfigFile) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for section: String in cfg.get_sections():
+		if section.begins_with("preset.") and not section.ends_with(".options"):
+			out.append(section)
+	return out
+
+
+## What's wrong with one assets.json entry's licence, credit and placeholder flag.
+static func asset_licence_problems(a: Dictionary) -> PackedStringArray:
+	var out: PackedStringArray = []
+	var licence := str(a.get("license", ""))
+	var credit := str(a.get("credit", "")).strip_edges()
+	var by_codeplate := credit.to_lower().begins_with("codeplate")
+	if licence not in ASSET_LICENSES:
+		out.append("license \"%s\" is not one of %s" % [licence, ", ".join(ASSET_LICENSES)])
+	if licence == "CodePlate-original" and not by_codeplate:
+		out.append("\"CodePlate-original\" files are credited to CodePlate, not \"%s\": a file the user gave you or made for them is \"license\": \"user-owned\" with the owner's name as \"credit\"" % credit)
+	if licence == "user-owned" and (credit.is_empty() or by_codeplate):
+		out.append("\"user-owned\" files credit their owner (the person or company), not CodePlate")
+	if licence == "OFL-1.1" and str(a.get("kind", "")) != "font":
+		out.append("only fonts may be OFL-1.1")
+	var use := str(a.get("use", "")).to_lower()
+	if ("placeholder" in use or "stand-in" in use) and a.get("placeholder", false) != true:
+		out.append("its use calls it a placeholder: add \"placeholder\": true (and remove both when the real file arrives)")
+	return out
 
 
 ## Data files (relative to res://) a game ships: every JSON, text, CSV or Markdown
@@ -142,3 +232,14 @@ static func files_under(dir: String, exts: Array = []) -> PackedStringArray:
 		if exts.is_empty() or f.get_extension() in exts:
 			out.append(dir.path_join(f))
 	return out
+
+
+func test_asset_licence_rules() -> void:
+	var ok := func(a: Dictionary) -> bool: return asset_licence_problems(a).is_empty()
+	expect(ok.call({"kind": "image", "use": "Hero", "license": "CodePlate-original", "credit": "CodePlate"}), "CodePlate's own file passes")
+	expect(ok.call({"kind": "image", "use": "Logo", "license": "user-owned", "credit": "Rock Pool Studio"}), "a user-owned file credited to its owner passes")
+	expect(not ok.call({"kind": "image", "use": "Logo", "license": "CodePlate-original", "credit": "Rock Pool Studio"}), "CodePlate-original credited to someone else fails")
+	expect(not ok.call({"kind": "image", "use": "Logo", "license": "user-owned", "credit": "CodePlate"}), "user-owned credited to CodePlate fails")
+	expect(not ok.call({"kind": "image", "use": "Rain cloud (placeholder)", "license": "CodePlate-original", "credit": "CodePlate"}), "a placeholder without the flag fails")
+	expect(ok.call({"kind": "image", "use": "Rain cloud (stand-in)", "license": "CodePlate-original", "credit": "CodePlate", "placeholder": true}), "a flagged placeholder passes")
+	expect(not ok.call({"kind": "image", "use": "Hero", "license": "MIT", "credit": "Someone"}), "a licence games don't ship fails")

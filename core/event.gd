@@ -5,7 +5,7 @@ extends RefCounted
 
 enum Type {
 	SPAWN, ## an enemy entered (`tag` = enemy id)
-	FIRE, ## a tower fired (`tag` = tower id; `target` = where it aimed)
+	FIRE, ## a tower fired (`tag` = tower id, `value` = its level; `target` = where it aimed)
 	HIT, ## an enemy took damage (`value` = amount, `tag` = tower id)
 	SPLASH, ## a splash shell burst (`value` = radius)
 	SLOW, ## an enemy was slowed

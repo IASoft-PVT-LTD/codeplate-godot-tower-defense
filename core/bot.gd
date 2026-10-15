@@ -1,12 +1,11 @@
 class_name Bot
 extends RefCounted
 ## A simple player for balance checks and tools/balance.gd. It builds towers
-## from a fixed order on the free cells that cover the most path, upgrades
+## in the content's order (towers.json "bot_order", or file order) on the
+## free cells that cover the most path (of every route), upgrades
 ## when it has spare gold, and lets every wave come on its own timer.
 ## A thoughtful person does better, so "the bot wins" means "fair".
 
-## Build order (repeats). Towers missing from the content are skipped.
-const BUILD_ORDER: Array[String] = ["arrow", "cannon", "arrow", "frost", "sun", "cannon", "arrow", "sun"]
 ## Start upgrading once it has this many towers.
 const UPGRADE_FROM := 8
 ## How often it thinks, in ticks.
@@ -51,8 +50,8 @@ static func play(content: Content, config: GameConfig, level: LevelData, seed_va
 	return o
 
 
-## Spends gold: builds the next tower in BUILD_ORDER if it can, otherwise
-## upgrades. Returns the new position in BUILD_ORDER.
+## Spends gold: builds the next tower in the bot order if it can, otherwise
+## upgrades. Returns the new position in the bot order.
 static func _think(b: Battle, coverage: Dictionary, order: int) -> int:
 	for guard: int in 20:
 		var id := _next_tower(b, order)
@@ -72,8 +71,9 @@ static func _think(b: Battle, coverage: Dictionary, order: int) -> int:
 
 
 static func _next_tower(b: Battle, order: int) -> String:
-	for i: int in BUILD_ORDER.size():
-		var id := BUILD_ORDER[(order + i) % BUILD_ORDER.size()]
+	var list := b.content.bot_order
+	for i: int in list.size():
+		var id := list[(order + i) % list.size()]
 		if not b.content.get_entry(id).is_empty():
 			return id
 	return "" if b.content.towers.is_empty() else str(b.content.towers[0]["id"])
@@ -113,10 +113,11 @@ static func _coverage(map: Map, reach: float, cache: Dictionary) -> Dictionary:
 	if cache.has(reach):
 		return cache[reach]
 	var samples: Array[Vector2] = []
-	var d := 0.0
-	while d <= map.path_length:
-		samples.append(map.position_at(d))
-		d += 6.0
+	for r: int in map.route_count():
+		var d := 0.0
+		while d <= map.route_lengths[r]:
+			samples.append(map.position_at(d, r))
+			d += 6.0
 	var out := {}
 	for y: int in map.height:
 		for x: int in map.width:

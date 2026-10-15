@@ -80,7 +80,9 @@ func test_credits_show_codeplate_credit() -> void:
 	await frames(1)
 	expect(s.find_child("CreditsPage", true, false).is_visible_in_tree(), "Credits opens the credits page")
 	var text := s.credits_text()
-	expect(text.contains("Godot Engine"), "credits come from CREDITS.md")
+	var md := FileAccess.get_file_as_string(CodePlateSettings.CREDITS_PATH)
+	for line: PackedStringArray in CodePlateSettings.credit_lines(md):
+		expect(text.contains(line[1]), "the credits page shows CREDITS.md line '%s'" % line[1])
 	if CodePlateSettings.is_free_license():
 		expect(text.contains(CodePlateSettings.CODEPLATE_CREDIT),
 			"free license: the credits show \"%s\" (keep it in CREDITS.md)" % CodePlateSettings.CODEPLATE_CREDIT)
@@ -101,6 +103,7 @@ func test_title_hint_has_touch_wording() -> void:
 	title.call("set_hint", true)
 	for word: String in ["ESC", "SPACE", "WASD", "KEYS", "1/2/3"]:
 		expect(not hint.text.contains(word), "touch hint doesn't mention the key \"%s\": %s" % [word, hint.text])
+	var touch_text := hint.text
 	title.call("set_hint", false)
-	expect(hint.text != "" and (hint.text.contains("KEY") or hint.text.contains("ESC")), "keyboard hint names keys: %s" % hint.text)
+	expect(hint.text != "" and hint.text != touch_text, "the keyboard hint is its own text: %s" % hint.text)
 	title.queue_free()

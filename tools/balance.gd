@@ -6,10 +6,19 @@ extends SceneTree
 ##   godot --headless --path . --script res://tools/balance.gd
 ##   godot --headless --path . --script res://tools/balance.gd -- level=level_03
 ##   godot --headless --path . --script res://tools/balance.gd -- level=level_03 waves=1
+##   godot --headless --path . --script res://tools/balance.gd -- level=level_02 gold=200 hp=1.2
+##   godot --headless --path . --script res://tools/balance.gd -- margin=1
 ##
 ## `waves=1` prints the bot's gold, lives and towers as each wave starts.
 ##
-## The bot builds from a fixed order on the cells that cover the most path.
+## What-ifs, without editing any file: `gold=N` plays with another starting
+## gold, `hp=X` with another health multiplier (the level's "hp_mult").
+## `margin=1` also finds the least starting gold the bot needs to reach the
+## lives target (25 gold steps, three wins in a row, since the bot's result
+## wobbles a little with gold). "slack" is the level's gold divided by that:
+## higher is more forgiving, and a steady climb has slack falling level by level.
+##
+## The bot builds in towers.json's "bot_order" on the cells that cover the most path.
 ## A thoughtful person does better, so if the bot wins with lives to spare,
 ## the level is fair; if it wins untouched, it's probably too easy.
 
@@ -37,6 +46,13 @@ func _run() -> void:
 		if args.has("level") and level.id != args["level"]:
 			continue
 		var t := Time.get_ticks_msec()
+		if args.has("gold") or args.has("hp"):
+			level = level.with_changes(int(args.get("gold", level.start_gold)), float(args.get("hp", level.hp_mult)))
+			print("%-12s      what-if: start_gold %d, hp_mult %.2f" % [level.id, level.start_gold, level.hp_mult])
+		if args.get("margin", "0") == "1":
+			var need := least_gold(content, config, level)
+			print("%-12s      the bot needs %d gold (the level gives %d): slack %.2f" % [level.id, need, level.start_gold,
+				float(level.start_gold) / maxf(1.0, need)])
 		var on_wave := Callable()
 		if args.get("waves", "0") == "1":
 			on_wave = func(b: Battle) -> void:
@@ -52,3 +68,17 @@ func _run() -> void:
 			"%d:%02d" % [int(o.seconds) / 60, int(o.seconds) % 60],
 			"WON" if idle.won else "lost", idle.waves_cleared, level.waves.size(), Time.get_ticks_msec() - t])
 	quit(0)
+
+
+## The least starting gold at which the bot wins `level` with at least
+## bot_min_lives of its lives, three 25-gold steps in a row.
+static func least_gold(content: Content, config: GameConfig, level: LevelData) -> int:
+	var wins := 0
+	var gold := 0
+	while gold < level.start_gold * 4:
+		gold += 25
+		var o := Bot.play(content, config, level.with_changes(gold, level.hp_mult), 1)
+		wins = wins + 1 if o.won and o.lives >= ceili(level.lives * config.bot_min_lives) else 0
+		if wins == 3:
+			return gold - 50
+	return gold

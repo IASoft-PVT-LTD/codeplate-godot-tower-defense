@@ -13,8 +13,22 @@ extends Control
 ##   var music_volume: float     0..1     func set_music_volume(v: float) -> void
 ##   var sfx_volume: float       0..1     func set_sfx_volume(v: float) -> void
 ##   var fullscreen: bool                 func set_fullscreen(on: bool) -> void
+##   var languages: Dictionary            code -> name shown, e.g. {"en": "English", "es": "Español"}
+##   var language: String                 func set_language(code: String) -> void
 ##   func save_settings() -> void         writes the save file (called on change)
 ##   func reset_progress() -> void        erases progress, keeps the settings
+##
+## The language row appears only when `languages` has two or more entries.
+## Text on this screen goes through Godot's TranslationServer like any other
+## Control, so a project's translation table can translate "Settings", "Music"...
+##
+## Extra rows: `add_row(control)` puts a project's own control above Credits
+## (or above any named control: `add_row(control, &"ResetButton")`):
+##
+##   var s := CodePlateSettings.open(self)
+##   s.add_row(my_difficulty_row)
+##
+## On a view under COMPACT_HEIGHT px tall, Fullscreen, Credits and Reset share one row.
 ##
 ## Credits: every line of res://CREDITS.md, except HTML comments (<!-- ... -->),
 ## which hold notes for the developer. Markdown links show as "text (url)".
@@ -32,6 +46,8 @@ const LICENSE_PATH := "res://LICENSE.md"
 const CODEPLATE_CREDIT := "Built with CodePlate (codeplate.io)"
 ## Volume slider step.
 const VOLUME_STEP := 0.05
+## Views shorter than this put two buttons on a row.
+const COMPACT_HEIGHT := 800.0
 
 var uppercase := false
 
@@ -45,6 +61,8 @@ var _reset_note: Label
 var _back: Button
 var _credits_scroll: ScrollContainer
 var _credits_max_height := 0.0
+## The Game stand-in for checks (open_with()); null means /root/Game.
+var _game_override: Object
 
 
 ## Adds the overlay on top of `parent` (usually the title screen) and returns it.
@@ -54,6 +72,30 @@ static func open(parent: Node, all_caps: bool = false) -> CodePlateSettings:
 	s.name = "CodePlateSettings"
 	parent.add_child(s)
 	return s
+
+
+## Like open(), but talks to `game` instead of the Game autoload (for checks).
+static func open_with(parent: Node, game: Object, all_caps: bool = false) -> CodePlateSettings:
+	var s := CodePlateSettings.new()
+	s.uppercase = all_caps
+	s.name = "CodePlateSettings"
+	s._game_override = game
+	parent.add_child(s)
+	return s
+
+
+## Adds a project's own control to the settings page, above the control named
+## `before` (default: Credits) or at the end when there is none. Returns `control`.
+func add_row(control: Control, before: StringName = &"CreditsButton") -> Control:
+	var anchor := _settings_page.find_child(String(before), true, false)
+	while anchor != null and anchor.get_parent() != _settings_page:
+		anchor = anchor.get_parent()
+	if control.size_flags_horizontal == Control.SIZE_FILL and control is Button:
+		control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_settings_page.add_child(control)
+	if anchor != null:
+		_settings_page.move_child(control, anchor.get_index())
+	return control
 
 
 ## True when res://LICENSE.md is the CodePlate Free License, which asks for
@@ -136,7 +178,7 @@ func close() -> void:
 
 
 func _ready() -> void:
-	_game = get_node_or_null(^"/root/Game")
+	_game = _game_override if _game_override != null else get_node_or_null(^"/root/Game")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -155,14 +197,15 @@ func _ready() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 	var panel := PanelContainer.new()
-	var width := minf(view.x - _fs * 2, _fs * 30)
+	var compact := view.y < COMPACT_HEIGHT
+	var width := minf(view.x - _fs * 2, _fs * (40 if compact else 30))
 	panel.custom_minimum_size = Vector2(width, 0)
 	center.add_child(panel)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override(&"separation", gap)
 	panel.add_child(col)
 
-	_settings_page = _build_settings(gap)
+	_settings_page = _build_settings(gap, compact)
 	_credits_page = _build_credits(gap, view.y - _fs * 9)
 	col.add_child(_settings_page)
 	col.add_child(_credits_page) # only one page is visible at a time
@@ -186,7 +229,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_back.pressed.emit()
 
 
-func _build_settings(gap: int) -> Control:
+func _build_settings(gap: int, compact: bool) -> Control:
 	var page := VBoxContainer.new()
 	page.name = "SettingsPage"
 	page.add_theme_constant_override(&"separation", gap)
@@ -207,13 +250,28 @@ func _build_settings(gap: int) -> Control:
 			_click()
 			_save())
 		page.add_child(full)
+	var langs := _languages()
+	if langs.size() >= 2:
+		page.add_child(_language_row(langs, gap))
 
 	var credits := _button("Credits")
 	credits.name = "CreditsButton"
 	credits.pressed.connect(func() -> void:
 		_click()
 		show_credits())
-	page.add_child(credits)
+	var pair: HBoxContainer = null
+	if compact:
+		pair = HBoxContainer.new()
+		pair.name = "ButtonsRow"
+		pair.alignment = BoxContainer.ALIGNMENT_CENTER
+		pair.add_theme_constant_override(&"separation", gap)
+		var full_button := page.get_node_or_null(^"FullscreenButton")
+		if full_button != null:
+			full_button.reparent(pair)
+		page.add_child(pair)
+		pair.add_child(credits)
+	else:
+		page.add_child(credits)
 
 	if _game != null and _game.has_method(&"reset_progress"):
 		_reset_row = _button("Reset progress")
@@ -225,7 +283,10 @@ func _build_settings(gap: int) -> Control:
 			_reset_row.visible = false
 			_confirm_row.visible = true
 			(_confirm_row.get_node(^"CancelResetButton") as Button).grab_focus())
-		page.add_child(_reset_row)
+		if pair != null:
+			pair.add_child(_reset_row)
+		else:
+			page.add_child(_reset_row)
 		var row := HBoxContainer.new()
 		row.name = "ConfirmRow"
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -326,6 +387,59 @@ func _volume_row(title: String, prop: StringName, setter: StringName, slider_nam
 	return row
 
 
+## The project's languages (code -> name shown), or {} when it has none.
+func _languages() -> Dictionary:
+	if _game == null or not _game.has_method(&"set_language"):
+		return {}
+	var v: Variant = _game.get(&"languages")
+	return v if v is Dictionary else {}
+
+
+func _language_row(langs: Dictionary, gap: int) -> Control:
+	var row := HBoxContainer.new()
+	row.name = "LanguageRow"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override(&"separation", gap)
+	var label := _label(_t("Language"), &"")
+	row.add_child(label)
+	var group := ButtonGroup.new()
+	var current := str(_game.get(&"language"))
+	for code: Variant in langs:
+		var b := Button.new()
+		b.name = "Language_%s" % str(code)
+		b.text = str(langs[code]) # the language's own name: never translated
+		b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		b.toggle_mode = true
+		b.button_group = group
+		b.button_pressed = str(code) == current
+		b.ready.connect(_style_selected.bind(b), CONNECT_ONE_SHOT) # the theme applies once in the tree
+		b.toggled.connect(func(on: bool) -> void:
+			if not on:
+				return
+			_game.call(&"set_language", str(code))
+			_click()
+			_save())
+		row.add_child(b)
+	return row
+
+
+## Makes a pressed toggle look chosen: an accent outline and text on its
+## normal look, so it never reads as greyed out.
+func _style_selected(b: Button) -> void:
+	var base := b.get_theme_stylebox(&"normal")
+	if base is StyleBoxFlat:
+		var sb := (base as StyleBoxFlat).duplicate() as StyleBoxFlat
+		sb.set_border_width_all(maxi(2, _fs / 8))
+		sb.border_color = _accent()
+		b.add_theme_stylebox_override(&"pressed", sb)
+		b.add_theme_stylebox_override(&"hover_pressed", sb)
+	elif base != null:
+		b.add_theme_stylebox_override(&"pressed", base)
+		b.add_theme_stylebox_override(&"hover_pressed", b.get_theme_stylebox(&"hover"))
+	b.add_theme_color_override(&"font_pressed_color", _accent())
+	b.add_theme_color_override(&"font_hover_pressed_color", _accent())
+
+
 func _cancel_reset() -> void:
 	if _reset_row == null:
 		return
@@ -357,7 +471,8 @@ func _fullscreen_text(on: bool) -> String:
 
 
 func _t(s: String) -> String:
-	return s.to_upper() if uppercase else s
+	# All caps: translate first (the table's keys are as written), then upper-case.
+	return tr(s).to_upper() if uppercase else s
 
 
 func _button(text: String) -> Button:

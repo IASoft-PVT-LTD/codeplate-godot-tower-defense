@@ -16,6 +16,16 @@
       "kind": "goal",
       "tile": "path"
     },
+    "R": {
+      "kind": "spawn",
+      "tile": "path",
+      "route": 1
+    },
+    "Q": {
+      "kind": "path",
+      "tile": "path",
+      "route": 1
+    },
     "#": {
       "kind": "block",
       "tile": "rock"

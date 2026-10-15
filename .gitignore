@@ -1,4 +1,6 @@
 .godot/
-shots/
-export/
+shots/*
+!shots/.gdignore
+export/*
+!export/.gdignore
 build/

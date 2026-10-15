@@ -30,7 +30,7 @@ var enemies: Array[Entities.Enemy] = []
 var towers: Dictionary[Vector2i, Entities.Tower] = {}
 var shots: Array[Entities.Shot] = []
 
-var _pending: Array = [] # [tick due, enemy id], sorted
+var _pending: Array = [] # [tick due, enemy id, route], sorted
 var _next_wave_tick := -1
 var _cleared_wave := 0
 var _next_enemy_id := 1
@@ -194,16 +194,17 @@ func _start_wave(tag: String) -> void:
 	wave += 1
 	_next_wave_tick = -1
 	for s: Array in level.wave_spawns(wave - 1):
-		_pending.append([tick + int(s[0]), s[1]])
+		_pending.append([tick + int(s[0]), s[1], s[2]])
 	_emit(SimEvent.Type.WAVE_START, GameConfig.cell_center(map.spawn), wave, tag)
 
 
 func _spawn_due() -> void:
 	while not _pending.is_empty() and int(_pending[0][0]) <= tick:
-		_spawn(str(_pending.pop_front()[1]), 0.0)
+		var p: Array = _pending.pop_front()
+		_spawn(str(p[1]), 0.0, int(p[2]))
 
 
-func _spawn(type: String, progress: float) -> void:
+func _spawn(type: String, progress: float, route: int = 0) -> void:
 	var d := content.get_entry(type)
 	var e := Entities.Enemy.new()
 	e.id = _next_enemy_id
@@ -218,18 +219,19 @@ func _spawn(type: String, progress: float) -> void:
 	e.flying = bool(d.get("flying", false))
 	e.boss = bool(d.get("boss", false))
 	e.progress = progress
+	e.route = route
 	e.pos = _position(e)
 	enemies.append(e)
 	_emit(SimEvent.Type.SPAWN, e.pos, 0.0, type)
 
 
 func _position(e: Entities.Enemy) -> Vector2:
-	return map.flight_position_at(e.progress) if e.flying else map.position_at(e.progress)
+	return map.flight_position_at(e.progress, e.route) if e.flying else map.position_at(e.progress, e.route)
 
 
 ## Pixels an enemy still has to go.
 func remaining(e: Entities.Enemy) -> float:
-	return (map.flight_length if e.flying else map.path_length) - e.progress
+	return (map.flight_lengths[e.route] if e.flying else map.route_lengths[e.route]) - e.progress
 
 
 func _move_enemies() -> void:
@@ -266,7 +268,7 @@ func _fire_towers() -> void:
 			continue
 		t.cooldown = maxi(1, GameConfig.ticks(1.0 / float(s["rate"])))
 		t.aim = target.pos
-		_emit(SimEvent.Type.FIRE, from, 0.0, t.type, target.pos)
+		_emit(SimEvent.Type.FIRE, from, t.level, t.type, target.pos)
 		var kind := str(d["kind"])
 		if kind == "ray":
 			_damage(target, float(s["damage"]), t.type, true)
@@ -276,6 +278,8 @@ func _fire_towers() -> void:
 		_next_shot_id += 1
 		shot.tower = t.type
 		shot.pos = from
+		shot.origin = from
+		shot.level = t.level
 		shot.target_id = target.id
 		shot.target_pos = target.pos
 		shot.speed = float(s["speed"])
@@ -357,7 +361,7 @@ func _damage(e: Entities.Enemy, amount: float, tower: String, ignores_armor: boo
 		var d := content.get_entry(e.type)
 		var into := str(d.get("splits_into", ""))
 		for i: int in int(d.get("split_count", 0)) if not into.is_empty() else 0:
-			_spawn(into, maxf(0.0, e.progress - rng.randf_range(0.0, 12.0)))
+			_spawn(into, maxf(0.0, e.progress - rng.randf_range(0.0, 12.0)), e.route)
 
 
 # --- Waves and the end ----------------------------------------------------------

@@ -3,8 +3,8 @@
 Use when the user wants a new enemy: one built from the existing behaviors (JSON and art only), or one with a new behavior such as healing, shielding or teleporting (code).
 
 ## Using existing behaviors
-1. Add an entry to `content/enemies.json`: `id`, `name`, `sprite`, `hp`, `speed`, `bounty`, and optionally `armor`, `lives`, `flying`, `splits_into` + `split_count`, `boss`. See `docs/content.md`.
-2. Art: a walk strip facing right, listed in `assets.json`.
+1. Add an entry to `content/enemies.json`: `id`, `name`, `sprite`, `hp`, `speed`, `bounty`, and optionally `armor`, `lives`, `flying`, `splits_into` + `split_count`, `boss`, `view`. See `docs/content.md`.
+2. Art: a walk strip facing right, listed in `assets.json`. For top-down art (seen from above, like an ant or a car) set `"view": "top"`: the enemy is centred on its spot and turns to face the way it walks, so draw it pointing right. The default `"side"` stands the art on its spot and flips it left or right.
 3. Put it in waves (`content/levels/*.json`). An enemy no wave uses never appears.
 4. Run `tools/balance.gd`.
 

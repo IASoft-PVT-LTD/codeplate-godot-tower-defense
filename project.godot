@@ -7,6 +7,8 @@ config_version=5
 
 config/name="Lantern Keep"
 config/description="A tower defense game. Built from the CodePlate Godot Tower Defense template."
+config/use_custom_user_dir=true
+config/custom_user_dir_name="lantern-keep"
 run/main_scene="res://ui/title.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/ui/icon.png"

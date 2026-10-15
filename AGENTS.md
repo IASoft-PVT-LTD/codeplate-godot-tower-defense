@@ -67,7 +67,7 @@ See `docs/architecture.md` for details.
 | `autoload/` | `Game` (config, content, saved stars, settings, unlocking, controls, scene changes) and `Audio`. |
 | `config/game_config.tres` | Numbers that aren't per-item: sell refund, wave gap, early-call bonus, star thresholds, **balance targets**, speeds, feel. |
 | `addons/codeplate/` | Shared CodePlate tooling: the check runner, `CheckCase`, project-wide checks, the screenshot tool and the settings + credits screen. **Don't edit it.** |
-| `tools/` | `balance.gd` (balance report) and `screenshot_hooks.gd`. |
+| `tools/` | `balance.gd` (balance report, with `gold=`, `hp=` and `margin=1` what-ifs), `import_atlas.gd` (cuts strips out of a TexturePacker atlas) and `screenshot_hooks.gd`. |
 
 How the pieces connect:
 - `BattleScreen._physics_process` calls `battle.step()` once per tick at 1×, twice at 2×, and alternately once and twice at 1.5× (`take_ticks()` keeps fractional speeds exact).
@@ -85,7 +85,7 @@ How the pieces connect:
 2. **All non-content numbers live in `config/game_config.gd` and `.tres`.** Add new tunables there, with defaults.
 3. **Keep the simulation deterministic.** In `core/`, use `battle.rng` for randomness (never `randf()`), never read the clock or `Input`, and use `GameConfig.DT` for time. `test_same_seed_same_battle` guards this.
 4. **Every level must be fair.** `test_every_level_is_fair` lets the bot play each level. After changing towers, enemies, waves or gold, run `tools/balance.gd` and keep every level winnable by the bot with `bot_min_lives` of its lives, and unwinnable without towers. If the user wants a harder game, lower the target in the config, and say so.
-5. **Maps are text.** Edit `content/levels/level_NN.txt` by hand: every row the same width, one `S`, one `G`, one path without forks (path rows or columns side by side count as a fork). The checks report the row and column of any mistake.
+5. **Maps are text.** Edit `content/levels/level_NN.txt` by hand: every row the same width, one `G`, and for each route one spawn (`S`, or `R` for route 1) joined to `G` by one path without forks (path rows or columns side by side count as a fork). A map with only `S` and `P` is one route. The checks report the route, row and column of any mistake. **Change a level's map only when the user asks for that level:** a new level is the safe default, and a second road in an existing one is their call (`docs/recipes/add-second-path.md`).
 6. **Every file under `assets/` is listed in `assets.json`.** Sprites named in `content/` must exist and be listed; a tower's sprite needs a frame per level.
 7. **Use typed GDScript.** `:=` from a Dictionary or Array value is an error here, so write the type: `var dmg: float = s["damage"]`. Keep scenes as text, and use no C#.
 8. **Keep the template's licensing clean.** Use the user's own assets, or CC0 ones, and record each new asset's `license` and `credit` in `assets.json`. `CodePlate-original` marks only the template's own placeholders. For art or sound you make for the user, put their game or team name in `license` and `credit` (they own it), and say in `use` that it's a generated placeholder.

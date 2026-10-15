@@ -1,0 +1,67 @@
+{
+  "enemies": [
+    {
+      "id": "grunt",
+      "name": "Shade",
+      "sprite": "assets/enemies/grunt.png",
+      "hp": 40,
+      "speed": 26,
+      "bounty": 7
+    },
+    {
+      "id": "runner",
+      "name": "Wisp",
+      "sprite": "assets/enemies/runner.png",
+      "hp": 22,
+      "speed": 48,
+      "bounty": 5
+    },
+    {
+      "id": "armored",
+      "name": "Oni Beetle",
+      "sprite": "assets/enemies/armored.png",
+      "hp": 80,
+      "speed": 20,
+      "armor": 4,
+      "bounty": 15
+    },
+    {
+      "id": "flyer",
+      "name": "Night Crow",
+      "sprite": "assets/enemies/flyer.png",
+      "hp": 30,
+      "speed": 30,
+      "bounty": 8,
+      "flying": true
+    },
+    {
+      "id": "splitter",
+      "name": "Gloom",
+      "sprite": "assets/enemies/splitter.png",
+      "hp": 60,
+      "speed": 22,
+      "bounty": 8,
+      "splits_into": "mini",
+      "split_count": 2
+    },
+    {
+      "id": "mini",
+      "name": "Gloomlet",
+      "sprite": "assets/enemies/mini.png",
+      "hp": 14,
+      "speed": 34,
+      "bounty": 2
+    },
+    {
+      "id": "boss",
+      "name": "Shadow Ogre",
+      "sprite": "assets/enemies/boss.png",
+      "hp": 1400,
+      "speed": 13,
+      "armor": 4,
+      "bounty": 150,
+      "lives": 10,
+      "boss": true
+    }
+  ]
+}

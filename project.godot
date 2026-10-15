@@ -1,0 +1,39 @@
+; Engine configuration file.
+; Edit with care: keep config/features matching the pinned Godot version in codeplate.json.
+
+config_version=5
+
+[application]
+
+config/name="Lantern Keep"
+config/description="A tower defense game. Built from the CodePlate Godot Tower Defense template."
+run/main_scene="res://ui/title.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://assets/ui/icon.png"
+boot_splash/bg_color=Color(0.07, 0.07, 0.14, 1)
+
+[autoload]
+
+Game="*res://autoload/game.gd"
+Audio="*res://autoload/audio.gd"
+
+[display]
+
+window/size/viewport_width=480
+window/size/viewport_height=270
+window/size/window_width_override=1440
+window/size/window_height_override=810
+window/stretch/mode="viewport"
+window/stretch/scale_mode="integer"
+
+[physics]
+
+common/physics_ticks_per_second=30
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.07, 0.07, 0.14, 1)
+2d/snap/snap_2d_transforms_to_pixel=true

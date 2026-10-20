@@ -3,16 +3,27 @@ extends RefCounted
 ## Shared helpers for the overlay panels (result, pause).
 
 
-## A dimmed full-view panel with a centered box; returns the box (VBox).
+## A dimmed full-view panel with a box centered in the safe area; returns
+## the box (VBox). Taps on the dim don't reach the map below.
 static func panel(layer: CanvasLayer, width: float) -> VBoxContainer:
 	var root := Game.ui_root(layer)
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
 	var dim := ColorRect.new()
 	dim.color = Color(0.02, 0.04, 0.04, 0.65)
-	dim.size = Vector2(480, 270)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_child(dim)
 	var center := CenterContainer.new()
-	center.size = Vector2(480, 270)
+	center.name = "Center"
 	root.add_child(center)
+	var fit := func() -> void:
+		var vp := root.get_viewport()
+		if vp == null:
+			return
+		var safe := Game.safe_rect(vp)
+		center.position = safe.position
+		center.size = Vector2(safe.size.x, Game.bottom_limit(vp) - safe.position.y)
+	root.resized.connect(fit)
+	fit.call()
 	var p := PanelContainer.new()
 	p.custom_minimum_size = Vector2(width, 0)
 	center.add_child(p)

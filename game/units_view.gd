@@ -61,7 +61,7 @@ func sync(t: float) -> void:
 			s = _make_enemy(e)
 			_enemies[e.id] = s
 		var p: Vector2 = _prev.get(e.id, e.pos)
-		s.position = p.lerp(e.pos, t).round()
+		s.position = p.lerp(e.pos, t) # not rounded: the map may be scaled up
 		if s.has_meta(&"top"):
 			if e.pos.distance_squared_to(p) > 0.0001:
 				s.rotation = (e.pos - p).angle()
@@ -89,7 +89,7 @@ func sync(t: float) -> void:
 		var muzzle := battle.content.muzzle(shot.tower, shot.level)
 		if muzzle > 0.0 and at.distance_to(shot.origin) < muzzle:
 			at = shot.origin + (shot.target_pos - shot.origin).normalized() * muzzle # leaves from the barrel's end
-		s.position = at.round()
+		s.position = at
 		s.rotation = (shot.target_pos - shot.pos).angle()
 		var art := str(battle.content.get_entry(shot.tower).get("shot", ""))
 		if s.get_meta(&"art", "") != art:

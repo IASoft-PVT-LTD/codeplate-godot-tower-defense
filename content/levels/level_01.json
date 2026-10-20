@@ -3,6 +3,11 @@
   "start_gold": 180,
   "lives": 20,
   "hp_mult": 1.0,
+  "towers": [
+    "arrow",
+    "cannon"
+  ],
+  "tip": "Tap a grass tile to build. Archers hit anything; mortars hit crowds on the ground.",
   "waves": [
     {
       "groups": [

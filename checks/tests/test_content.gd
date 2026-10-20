@@ -45,12 +45,15 @@ func test_content_validation_catches_mistakes() -> void:
 		]},
 		"enemies": {"enemies": [{"id": "t", "hp": 1}, {"id": "q", "hp": 1, "view": "sideways"}, {"id": "e", "hp": 1, "speed": 1, "bounty": 1, "sprite": "x", "splits_into": "ghost"}]},
 		"legend": {"tiles": LEGEND.merged({"r": {"kind": "spawn", "route": -1}})},
-		"levels": [{"id": "l", "map": "SPG", "waves": [{"groups": [{"enemy": "dragon", "count": 0, "route": 3}]}]}],
+		"levels": [{"id": "l", "map": "SPG", "waves": [{"groups": [{"enemy": "dragon", "count": 0, "route": 3}]}]},
+			{"id": "m", "map": "SPG", "towers": ["zap"], "tip": 5, "waves": [{"groups": [{"enemy": "t", "count": 1}]}]},
+			{"id": "n", "map": "SPG", "towers": "v", "waves": [{"groups": [{"enemy": "t", "count": 1}]}]}],
 	}, errors)
 	expect(c == null, "invalid content returns null")
 	for needle: String in ["kind must be one of", "level 1 is missing \"splash\"", "\"targets\" must list", "used twice",
 			"missing \"speed\"", "\"view\" must be", "\"base\" must be an art path", "\"muzzle\" must list one barrel length per level",
-			"\"route\" must be a whole number", "route 3 isn't on the map", "splits_into \"ghost\"", "\"dragon\" isn't in enemies.json", "\"count\" must be at least 1"]:
+			"\"route\" must be a whole number", "route 3 isn't on the map", "splits_into \"ghost\"", "\"dragon\" isn't in enemies.json", "\"count\" must be at least 1",
+			"names \"zap\", which isn't in towers.json", "\"tip\" must be text", "\"towers\" must be a list"]:
 		expect(Array(errors).any(func(e: String) -> bool: return e.contains(needle)), "reports: %s" % needle)
 
 
@@ -87,9 +90,48 @@ func test_every_level_is_fair() -> void:
 		expect(o.won and o.lives >= ceili(level.lives * cfg.bot_min_lives),
 			"%s: the bot %s with %d/%d lives; target %d%% (tools/balance.gd)" % [level.id, "won" if o.won else "lost",
 			o.lives, level.lives, roundi(cfg.bot_min_lives * 100.0)])
+		if cfg.bot_hp_margin > 0.0:
+			var tough := Bot.play(Game.content, cfg, level.with_changes(level.start_gold, level.hp_mult * (1.0 + cfg.bot_hp_margin)), 1)
+			expect(tough.won, "%s: the bot loses with %d%% tougher enemies: the level is on a cliff edge (tools/balance.gd -- level=%s tune=1)" % [
+				level.id, roundi(cfg.bot_hp_margin * 100.0), level.id])
 		if cfg.idle_must_lose:
 			var idle := Bot.play(Game.content, cfg, level, 1, false)
 			expect(not idle.won, "%s: winnable without building anything" % level.id)
+
+
+func test_towers_come_in_one_at_a_time() -> void:
+	# Levels may list the towers they offer (level JSON "towers"). After the
+	# first level, each brings in at most one new tower and says so in its "tip".
+	var seen: Array[String] = []
+	for i: int in Game.content.levels.size():
+		var level := Game.content.levels[i]
+		var new: Array[String] = []
+		for t: Dictionary in Game.content.towers:
+			var id := str(t["id"])
+			if level.allows(id) and id not in seen:
+				new.append(id)
+				seen.append(id)
+		if i == 0:
+			expect(not new.is_empty(), "%s: offers at least one tower" % level.id)
+			continue
+		expect(new.size() <= 1, "%s: brings in %d new towers (%s); one per level is easier to learn" % [level.id, new.size(), ", ".join(new)])
+		if new.size() == 1:
+			expect(not level.tip.is_empty(), "%s: brings in the %s, so its \"tip\" should say what it does" % [level.id, new[0]])
+
+
+func test_flyers_have_room_to_fly() -> void:
+	# A flyer crosses straight from its route's spawn to the goal: a spawn near
+	# the goal (easy with a second route) lets it in before any tower fires.
+	var cfg := Game.config
+	for level: LevelData in Game.content.levels:
+		for w: Dictionary in level.waves:
+			for g: Dictionary in w.get("groups", []):
+				if not bool(Game.content.get_entry(str(g["enemy"])).get("flying", false)):
+					continue
+				var route := int(g.get("route", 0))
+				var cells := level.map.flight_lengths[route] / GameConfig.CELL
+				expect(cells >= cfg.min_flight_cells - 0.01, "%s: %s flies %.1f cells on route %d, under min_flight_cells %.0f: move the spawn or the goal apart" % [
+					level.id, g["enemy"], cells, route, cfg.min_flight_cells])
 
 
 func test_art_scale_and_smoothing_come_from_assets_json() -> void:

@@ -81,7 +81,8 @@ SPPPPPP......PPPPPPG
 ......P......P......
 ```
 
-- Every row is the same width. The template's maps are 20×10, which fills the 480×240 area below the HUD; bigger maps need a camera (see `add-level.md`).
+- Every row is the same width. The template's maps are 20×10; the battle screen scales the map to fit the screen, so other sizes work too (keep about this shape, or the cells get small). Much bigger maps need a camera (see `add-level.md`).
+- On phones every buildable cell must end above the bottom strip, so a map whose lowest rows are path or decoration leaves room for a bigger map (`test_phone.gd` checks it).
 - One `G`, and one spawn per route (`S` for route 0, `R` for route 1), each joined to `G` by its own path with **no forks**. Two path cells of one route side by side count as a fork, so leave a gap between parallel stretches. A map with just `S`, `P` and `G` has one route. More roads: `docs/recipes/add-second-path.md`.
 - Levels are played in file-name order.
 
@@ -98,6 +99,8 @@ SPPPPPP......PPPPPPG
 | `name` | Shown on the level card and at the start. |
 | `start_gold`, `lives` | The starting purse and lives. |
 | `hp_mult` | Optional (default 1). Multiplies every enemy's health in this level: an easy difficulty knob. |
+| `towers` | Optional. The tower ids this level offers, e.g. `["arrow", "cannon"]`. Leave it out to offer every tower. The build menu shows only these, the bot builds only these, and a check wants each level after the first to bring in at most one new tower. |
+| `tip` | Optional. A line shown under the level's name when it starts and on the pause menu, e.g. what a new tower or enemy does. A level that brings in a new tower needs one. |
 | `waves[].groups[]` | Groups in a wave spawn in parallel: after `delay` seconds, `count` of `enemy`, one every `gap` seconds. Optional `route` (default 0): which of the map's roads the group walks; a route the map lacks is an error. |
 
 The first wave starts when the player presses START. After a wave finishes spawning, the next one starts `wave_gap` seconds later (config), or earlier if the player calls it, for `early_bonus_per_second` gold per second skipped. The level is won when the last wave is cleared.

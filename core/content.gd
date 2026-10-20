@@ -151,10 +151,21 @@ static func from_data(data: Dictionary, errors: PackedStringArray) -> Content:
 				var route := int(g.get("route", 0))
 				if map != null and (route < 0 or route >= map.route_count()):
 					errors.append("%s.json: wave %d: route %d isn't on the map (it has %d)" % [where, wi + 1, route, map.route_count()])
+		var offered: Variant = l.get("towers", [])
+		if not offered is Array:
+			errors.append("%s.json: \"towers\" must be a list of tower ids (or leave it out for every tower)" % where)
+			offered = []
+		var tip: Variant = l.get("tip", "")
+		if not tip is String:
+			errors.append("%s.json: \"tip\" must be text" % where)
+			tip = ""
 		if map != null:
 			var ld := LevelData.make(str(l.get("id", "")), str(l.get("name", l.get("id", ""))), map,
 				int(l.get("start_gold", 100)), int(l.get("lives", 20)), waves)
 			ld.hp_mult = float(l.get("hp_mult", 1.0))
+			for id: Variant in offered:
+				ld.towers.append(str(id))
+			ld.tip = str(tip)
 			c.levels.append(ld)
 
 	var tower_ids: Array[String] = []
@@ -168,6 +179,11 @@ static func from_data(data: Dictionary, errors: PackedStringArray) -> Content:
 			if str(id) not in tower_ids:
 				errors.append("towers.json: bot_order names \"%s\", which isn't a tower" % id)
 			c.bot_order.append(str(id))
+
+	for ld: LevelData in c.levels:
+		for id: String in ld.towers:
+			if id not in tower_ids:
+				errors.append("levels/%s.json: \"towers\" names \"%s\", which isn't in towers.json" % [ld.id, id])
 
 	for list: Array in [c.towers, c.enemies]:
 		for e: Dictionary in list:

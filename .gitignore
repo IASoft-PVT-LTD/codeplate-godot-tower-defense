@@ -4,3 +4,6 @@ shots/*
 export/*
 !export/.gdignore
 build/
+# Godot's Android build template (docs/recipes/export-android.md installs it
+# for a release build and deletes it afterwards)
+android/

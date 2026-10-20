@@ -1,6 +1,9 @@
 extends Node
 ## Autoload `Game`: config, content, saved progress (stars per level),
-## settings, default controls, the UI theme, and scene changes.
+## settings, default controls, the UI theme, and scene changes. Also the phone
+## plumbing: Android's Back button (go_back()), muting while the app is in the
+## background, the safe area (camera cutouts, rounded corners, the gesture
+## bar: safe_insets()) and the touch layout (is_touch()).
 
 const CONFIG_PATH := "res://config/game_config.tres"
 const THEME_PATH := "res://ui/theme.tres"
@@ -38,6 +41,11 @@ var stars: Dictionary[String, int] = {}
 var level_index := 0
 ## Seed for the next battle; 0 = random. Checks and tools set it.
 var next_seed := 0
+## Checks and screenshots pretend a phone's cutout and gesture bar with this:
+## insets in view units, as Rect2(left, top, right, bottom). Off while
+## `safe_override_on` is false; then phones report their own (safe_insets()).
+var safe_override_on := false
+var safe_override := Rect2()
 
 
 func _ready() -> void:
@@ -54,14 +62,107 @@ func _ready() -> void:
 
 
 ## A full-view Control carrying the theme, for CanvasLayers (they don't
-## inherit the window's theme).
+## inherit the window's theme). It covers the whole visible view at any aspect
+## ratio and follows resizes: lay children out with anchors, or in a function
+## connected to its `resized` signal.
 func ui_root(layer: CanvasLayer) -> Control:
 	var c := Control.new()
+	c.name = "UiRoot"
 	c.theme = theme
-	c.size = Vector2(480, 270)
 	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(c)
+	var vp := layer.get_viewport()
+	if vp != null:
+		var fit := func() -> void:
+			c.position = Vector2.ZERO
+			c.size = vp.get_visible_rect().size
+		vp.size_changed.connect(fit)
+		c.tree_exiting.connect(func() -> void: vp.size_changed.disconnect(fit))
+		fit.call()
 	return c
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_WM_GO_BACK_REQUEST:
+			go_back()
+		NOTIFICATION_APPLICATION_PAUSED:
+			AudioServer.set_bus_mute(0, true) # nothing plays while the app is in the background
+		NOTIFICATION_APPLICATION_RESUMED:
+			AudioServer.set_bus_mute(0, false)
+
+
+## Android's Back button (project.godot has quit_on_go_back=false, so Back
+## never quits by itself): the current screen's go_back() decides. Battle:
+## pause, then the level select. Level select: the title. Title: closes
+## Settings, else asks before leaving the game.
+func go_back() -> void:
+	var scene := get_tree().current_scene
+	if scene != null and scene.has_method(&"go_back"):
+		scene.call(&"go_back")
+
+
+## True when the touch layout is on (config `touch_ui`): on touch screens and
+## mobile exports with "auto".
+func is_touch() -> bool:
+	match config.touch_ui:
+		"always":
+			return true
+		"off":
+			return false
+	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
+
+
+## The parts of the view a phone covers (camera cutout, rounded corners, the
+## gesture bar), in view units: Rect2(left, top, right, bottom). Zero on
+## desktop and web.
+func safe_insets(vp: Viewport) -> Rect2:
+	if safe_override_on:
+		return safe_override
+	if not OS.has_feature("mobile"):
+		return Rect2()
+	var win := Vector2(DisplayServer.window_get_size())
+	var safe := Rect2(DisplayServer.get_display_safe_area())
+	var view := vp.get_visible_rect().size
+	if win.x <= 0.0 or win.y <= 0.0 or safe.size.x <= 0.0:
+		return Rect2()
+	var k := view / win # window pixels -> view units
+	return Rect2(maxf(safe.position.x, 0.0) * k.x, maxf(safe.position.y, 0.0) * k.y,
+		maxf(win.x - safe.end.x, 0.0) * k.x, maxf(win.y - safe.end.y, 0.0) * k.y)
+
+
+## The visible view minus the safe insets, in view units: where buttons, the
+## HUD and the map may go.
+func safe_rect(vp: Viewport) -> Rect2:
+	var inset := safe_insets(vp)
+	var view := vp.get_visible_rect().size
+	return Rect2(inset.position, view - inset.position - inset.size)
+
+
+## The lowest a button's bottom edge (or a buildable cell's) may be, in view
+## units. With the touch layout: `bottom_clear_fraction` of the height above
+## the bottom, and clear of the gesture bar. Otherwise the safe area's bottom.
+func bottom_limit(vp: Viewport) -> float:
+	var h := vp.get_visible_rect().size.y
+	if not is_touch():
+		return h - safe_insets(vp).size.y
+	return h - maxf(h * config.bottom_clear_fraction, safe_insets(vp).size.y)
+
+
+## The smallest touch target in view units (`min_touch_share` of the height)
+## with the touch layout; 0 without it.
+func min_touch_size(vp: Viewport) -> float:
+	return vp.get_visible_rect().size.y * config.min_touch_share if is_touch() else 0.0
+
+
+## True when building, upgrading and selling take two taps (config `confirm_spending`).
+func confirms_spending() -> bool:
+	match config.confirm_spending:
+		"always":
+			return true
+		"off":
+			return false
+	return is_touch()
 
 
 func is_unlocked(index: int) -> bool:

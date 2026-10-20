@@ -38,11 +38,18 @@ layout_mode = 2
 theme_type_variation = &"SmallLabel"
 horizontal_alignment = 1
 
-[node name="Center" type="CenterContainer" parent="Rows"]
+[node name="Scroll" type="ScrollContainer" parent="Rows"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="Grid" type="GridContainer" parent="Rows/Center"]
+[node name="Center" type="CenterContainer" parent="Rows/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Grid" type="GridContainer" parent="Rows/Scroll/Center"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 8

@@ -3,6 +3,7 @@
   "start_gold": 240,
   "lives": 20,
   "hp_mult": 1.15,
+  "tip": "Night Crows fly straight to the shrine, over the path. Mortars can't hit them.",
   "waves": [
     {
       "groups": [

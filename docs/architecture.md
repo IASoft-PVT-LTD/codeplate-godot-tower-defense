@@ -37,11 +37,12 @@ Each enemy has `progress`: the pixels it has travelled. Its position comes from 
 
 | File | Job |
 |---|---|
-| `battle_screen.gd` / `.tscn` | `BattleScreen`: the tick loop and speed (`take_ticks()`: whole ticks per frame, fractional speeds averaged exactly), input (taps open menus; keys act on the menu's cell or the hovered one), events to sound and effects, the range ring and hover cursor, finishing a level. `MAP_ORIGIN` puts the map below the HUD. |
+| `battle_screen.gd` / `.tscn` | `BattleScreen`: the tick loop and speed (`take_ticks()`: whole ticks per frame, fractional speeds averaged exactly), input (taps open menus; keys act on the menu's cell or the hovered one), events to sound and effects, the range ring, the ghost of a tower being previewed and the hover cursor, finishing a level, Android's Back (`go_back()`) and pausing when the app goes to the background. `fit_layout()` places the HUD and scales the map on every resize; `cell_to_screen()`, `screen_to_cell()`, `cell_rect()`, `map_rect()` and `tap_target()` convert between cells and the screen. |
 | `map_view.gd` | Tiles, decorations, the spawn and the goal. |
 | `units_view.gd` | Towers (on a base, frame = level; with a `base` in the content, a turning head), enemies (one sprite each, flipped by direction or, with `view: top`, turned to their heading; tinted when slowed), shots (pooled by id), health bars. |
-| `hud.gd` | Gold, lives, wave, START / NEXT (+bonus), speed, pause, announcements. |
-| `cell_menu.gd` | The build menu (one button per tower) and the tower menu (upgrade, sell, targeting). |
+| `hud.gd` | Gold, lives, wave, START / NEXT (+bonus), speed, pause, announcements and the level's tip. A bar across the top, or a column at the right (`fit()`). |
+| `cell_menu.gd` | The build menu (one button per tower the level offers) and the tower menu (upgrade, sell, targeting), with a line of the tower's numbers (`tower_text()`). Two-tap spending when `Game.confirms_spending()`. |
+| `touch.gd` | `Touch`: grows buttons to the smallest touch target (`enlarge()`), two-tap buttons (`confirm()`), and helpers the checks use. |
 | `result_panel.gd`, `pause_menu.gd`, `overlays.gd` | Victory/defeat, pause, and shared panel helpers. |
 | `fx.gd` | Bursts, rays and floating text. |
 | `sprites.gd` | Reads frame sizes, `scale` and `smooth` from `assets.json` and cuts strips into frames; every sprite the game draws is made through it. |
@@ -50,12 +51,13 @@ Each enemy has `progress`: the pixels it has travelled. Its position comes from 
 
 | File | Job |
 |---|---|
-| `game.gd` | Loads config and content, applies the UI theme, the default keys (`DEFAULT_KEYS`), saved progress and settings (`user://progress.json`: stars per level, sound, music and effects volume, fullscreen; `reset_progress()` clears the stars), unlocking (`is_unlocked`), `start_level()`, `goto_levels()`, `goto_title()`, `next_seed`. |
+| `game.gd` | Loads config and content, applies the UI theme, the default keys (`DEFAULT_KEYS`), saved progress and settings (`user://progress.json`: stars per level, sound, music and effects volume, fullscreen; `reset_progress()` clears the stars), unlocking (`is_unlocked`), `start_level()`, `goto_levels()`, `goto_title()`, `next_seed`. The phone plumbing: `go_back()` (Android's Back calls the current scene's), muting while the app is in the background, `safe_insets()` / `safe_rect()` / `bottom_limit()` / `min_touch_size()`, `is_touch()` and `confirms_spending()`. `ui_root()` gives CanvasLayers a theme-carrying root that covers the visible view. |
 | `audio.gd` | Sounds by name with a per-sound `max_per_second` throttle, and looping music. Applies the volume settings. |
 
 The title's Settings button opens `addons/codeplate/ui/settings_screen.gd` (`CodePlateSettings`): music and effects volume, fullscreen, reset progress (with a confirmation) and a Credits page built from `CREDITS.md`. It reads and sets `Game.music_volume`, `sfx_volume` and `fullscreen` through their `set_*()` functions, `save_settings()` and `reset_progress()`.
 
 ## Coordinates and time
 
-- Map pixels: cell (x, y) covers `x*24 .. x*24+24`. `GameConfig.cell_center()` and `pixel_to_cell()` convert. On screen the map is offset by `BattleScreen.MAP_ORIGIN` (below the 30 px HUD).
+- Map pixels: cell (x, y) covers `x*24 .. x*24+24`. `GameConfig.cell_center()` and `pixel_to_cell()` convert. On screen the map is scaled to `BattleScreen.cell_px` view units per cell and placed at `map_origin` (both set by `fit_layout()`): in a 480×270 window without the touch layout that is 24 (1:1) at (0, 30), below the HUD bar. Use the instance helpers (`cell_to_screen()` and friends), not fixed numbers.
+- View units: the view is 480×270 on a 16:9 window and grows with the screen's shape (`window/stretch/aspect="expand"`): 600×270 on a 20:9 phone, 480×360 on a 4:3 tablet. Lay screens out from `get_viewport().get_visible_rect()` or `Game.safe_rect()`.
 - 30 ticks per second (`physics/common/physics_ticks_per_second` and `GameConfig.TICKS_PER_SECOND` must match). Content times are seconds; `GameConfig.ticks()` converts.

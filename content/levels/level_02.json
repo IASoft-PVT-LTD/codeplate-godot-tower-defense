@@ -3,6 +3,12 @@
   "start_gold": 240,
   "lives": 20,
   "hp_mult": 1.0,
+  "towers": [
+    "arrow",
+    "cannon",
+    "frost"
+  ],
+  "tip": "New: the Frost Lantern slows whatever it hits. Oni Beetles are slow but tough.",
   "waves": [
     {
       "groups": [

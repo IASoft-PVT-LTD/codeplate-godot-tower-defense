@@ -8,6 +8,7 @@ extends SceneTree
 ##   godot --headless --path . --script res://tools/balance.gd -- level=level_03 waves=1
 ##   godot --headless --path . --script res://tools/balance.gd -- level=level_02 gold=200 hp=1.2
 ##   godot --headless --path . --script res://tools/balance.gd -- margin=1
+##   godot --headless --path . --script res://tools/balance.gd -- level=level_03 tune=1
 ##
 ## `waves=1` prints the bot's gold, lives and towers as each wave starts.
 ##
@@ -17,6 +18,12 @@ extends SceneTree
 ## lives target (25 gold steps, three wins in a row, since the bot's result
 ## wobbles a little with gold). "slack" is the level's gold divided by that:
 ## higher is more forgiving, and a steady climb has slack falling level by level.
+##
+## `tune=1` sweeps the level's health multiplier (hp_mult) from 0.6 to 1.6 in
+## 0.05 steps and prints the bot's lives at each. The bot's result can jump
+## from "untouched" to "lost" over a few percent of health; set hp_mult in a
+## steady stretch, with a few steps of room before the losses start (the
+## fairness check also wants a win with `bot_hp_margin` more health).
 ##
 ## The bot builds in towers.json's "bot_order" on the cells that cover the most path.
 ## A thoughtful person does better, so if the bot wins with lives to spare,
@@ -49,6 +56,8 @@ func _run() -> void:
 		if args.has("gold") or args.has("hp"):
 			level = level.with_changes(int(args.get("gold", level.start_gold)), float(args.get("hp", level.hp_mult)))
 			print("%-12s      what-if: start_gold %d, hp_mult %.2f" % [level.id, level.start_gold, level.hp_mult])
+		if args.get("tune", "0") == "1":
+			tune(content, config, level)
 		if args.get("margin", "0") == "1":
 			var need := least_gold(content, config, level)
 			print("%-12s      the bot needs %d gold (the level gives %d): slack %.2f" % [level.id, need, level.start_gold,
@@ -68,6 +77,16 @@ func _run() -> void:
 			"%d:%02d" % [int(o.seconds) / 60, int(o.seconds) % 60],
 			"WON" if idle.won else "lost", idle.waves_cleared, level.waves.size(), Time.get_ticks_msec() - t])
 	quit(0)
+
+
+## Prints the bot's lives at health multipliers 0.6 to 1.6, marking the level's own.
+static func tune(content: Content, config: GameConfig, level: LevelData) -> void:
+	print("%-12s      hp_mult sweep (the level has %.2f; target %d+ lives):" % [level.id, level.hp_mult, ceili(level.lives * config.bot_min_lives)])
+	for step: int in range(12, 33):
+		var hp := step * 0.05
+		var o := Bot.play(content, config, level.with_changes(level.start_gold, hp), 1)
+		var bar := "#".repeat(o.lives) if o.won else "lost"
+		print("    %.2f %s %3d/%-3d %s" % [hp, "<" if is_equal_approx(hp, level.hp_mult) else " ", o.lives if o.won else 0, level.lives, bar])
 
 
 ## The least starting gold at which the bot wins `level` with at least

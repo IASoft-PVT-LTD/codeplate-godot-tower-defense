@@ -23,7 +23,7 @@ Routes are part of the core, so this is a map edit and a wave edit, no code. Rou
    ```json
    {"enemy": "grunt", "count": 8, "gap": 1.2, "route": 1}
    ```
-   Splitters keep their route: what a splitter splits into walks on from where it died. Flyers fly straight from their route's cave to the goal.
+   Splitters keep their route: what a splitter splits into walks on from where it died. Flyers fly straight from their route's cave to the goal, so a second cave near the goal lets them in at once: keep every route a flyer uses at least `min_flight_cells` (8) cells from the goal in a straight line (`test_flyers_have_room_to_fly`).
 3. **More routes.** For a third road add two letters to `content/legend.json` with `"route": 2` (a spawn and a path letter) and use them the same way. Routes are numbered 0, 1, 2 without gaps; a wave naming a route the map lacks is a content error.
 4. **Let it be fair.** The balance bot covers every route when it picks cells. Run `tools/balance.gd -- level=level_07` and adjust `start_gold` and the waves until the bot wins with at least `bot_min_lives` of its lives and the idle run loses (`docs/recipes/tune-balance.md`).
 5. **Caves.** Every spawn cell gets a cave. Frame N of `assets/tiles/spawn.png` is used for route N when the strip has that many frames; otherwise the frames repeat.

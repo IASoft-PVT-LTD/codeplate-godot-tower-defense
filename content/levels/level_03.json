@@ -3,6 +3,7 @@
   "start_gold": 220,
   "lives": 20,
   "hp_mult": 1.0,
+  "tip": "New: the Sun Mirror's long beam ignores armor. A Gloom splits in two when it falls.",
   "waves": [
     {
       "groups": [

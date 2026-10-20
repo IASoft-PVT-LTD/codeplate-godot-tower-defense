@@ -35,8 +35,9 @@ func open(won: bool, stars: int, lives: int, max_lives: int, has_next: bool) -> 
 		first = Overlays.button(_box, "NEXT LEVEL", _click.bind(next_pressed))
 	var retry := Overlays.button(_box, "RETRY", _click.bind(retry_pressed))
 	Overlays.button(_box, "LEVELS", _click.bind(levels_pressed))
+	Touch.enlarge(_box)
 	visible = true
-	(first if first != null else retry).grab_focus.call_deferred()
+	Touch.focus_later(first if first != null else retry)
 
 
 func _click(sig: Signal) -> void:

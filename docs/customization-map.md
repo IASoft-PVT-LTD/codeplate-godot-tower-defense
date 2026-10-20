@@ -22,8 +22,11 @@
 | Game speeds (fractions like 1.5 work) | `speeds` in config | — |
 | A tap-to-cast spell | `core/battle.gd` command + HUD button | `recipes/add-spell.md` |
 | Endless mode | `core/battle.gd` wave flow, level select | `recipes/add-endless-mode.md` |
-| Phone-friendly controls | `game/cell_menu.gd`, `game/battle_screen.gd` | `recipes/add-touch-polish.md` |
-| The HUD | `game/hud.gd` | — |
+| Phone layout: button size, the bottom strip, tap snapping, two taps to spend | Phones and tablets group in config (`touch_ui`, `min_touch_share`, `bottom_clear_fraction`, `tap_snap`, `confirm_spending`) | `recipes/add-touch-polish.md` |
+| Which towers a level offers, a tip when it starts | `content/levels/level_NN.json` (`towers`, `tip`) | `recipes/add-level.md` |
+| A logo before the title | Splash group in config (`splash_image`, `splash_text`), `ui/splash.tscn` | — |
+| What Android's Back button does | `go_back()` in each scene (`autoload/game.gd` routes it) | `recipes/add-touch-polish.md` |
+| The HUD (a bar, or a column on wide phones) | `game/hud.gd`, `BattleScreen.fit_layout()` | — |
 | Colors, button styles, font | `ui/theme.tres`, `assets/ui/font.*` | `recipes/retheme.md` |
 | Keys | `DEFAULT_KEYS` in `autoload/game.gd` | — |
 | Sounds and music | `assets/audio/`, `autoload/audio.gd` | `recipes/replace-sounds-and-music.md` |

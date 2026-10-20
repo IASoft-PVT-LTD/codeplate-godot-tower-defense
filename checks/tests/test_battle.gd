@@ -435,25 +435,67 @@ P..
 P..
 G..
 """
+## ROAD_DOWN's own legend, so the checks don't depend on the game's legend.json.
+const ROAD_LEGEND := {
+	".": {"kind": "build", "tile": "build"},
+	"P": {"kind": "path", "tile": "path"},
+	"S": {"kind": "spawn", "tile": "path"},
+	"G": {"kind": "goal", "tile": "path"},
+}
 
 
-## The template's first tower and first enemy with extra fields, on ROAD_DOWN.
+## The game's first tower and first enemy on ROAD_DOWN, stripped to plain
+## defaults (a tower with no "base" or "muzzle", a side-view walking enemy),
+## then with the extra fields. A null extra removes the field. So the checks
+## hold whatever the game's own first tower and enemy look like.
 func _view_content(tower_extra: Dictionary, enemy_extra: Dictionary) -> Content:
 	var errors: PackedStringArray = []
 	var tower: Dictionary = (Game.content.towers[0] as Dictionary).duplicate(true)
-	tower.merge(tower_extra, true)
+	tower.erase("base")
+	tower.erase("muzzle")
+	_merge(tower, tower_extra)
 	var enemy: Dictionary = (Game.content.enemies[0] as Dictionary).duplicate(true)
-	enemy.merge(enemy_extra, true)
-	enemy.erase("splits_into")
+	for f: String in ["splits_into", "flying", "boss"]:
+		enemy.erase(f)
+	enemy["view"] = "side"
+	_merge(enemy, enemy_extra)
 	var c := Content.from_data({
 		"towers": {"towers": [tower]},
 		"enemies": {"enemies": [enemy]},
-		"legend": {"tiles": Game.content.legend},
+		"legend": {"tiles": ROAD_LEGEND},
 		"levels": [{"id": "road", "map": ROAD_DOWN, "start_gold": 500, "lives": 10,
 			"waves": [{"groups": [{"enemy": enemy["id"], "count": 2, "gap": 1.0}]}]}],
 	}, errors)
 	assert(c != null, "\n".join(errors))
 	return c
+
+
+func _merge(d: Dictionary, extra: Dictionary) -> void:
+	for k: Variant in extra:
+		if extra[k] == null:
+			d.erase(k)
+		else:
+			d[k] = extra[k]
+
+
+## Art for a turret's fixed base: a base one of the game's towers uses, else
+## UnitsView's shared plinth, else the tower's own art (any picture will do).
+func _any_base() -> String:
+	for t: Dictionary in Game.content.towers:
+		if t.has("base"):
+			return str(t["base"])
+	if ResourceLoader.exists("res://" + UnitsView.BASE) or FileAccess.file_exists("res://" + UnitsView.BASE):
+		return UnitsView.BASE
+	return str(Game.content.towers[0]["sprite"])
+
+
+## One barrel length per level of the game's first tower: `first`, then one
+## more per level.
+func _muzzle(first: float, step: float = 1.0) -> Array:
+	var out: Array = []
+	for i: int in (Game.content.towers[0]["levels"] as Array).size():
+		out.append(first + step * i)
+	return out
 
 
 ## A battle on ROAD_DOWN with one tower built beside the road, and a view of it.
@@ -484,7 +526,7 @@ func _step_until_fire(b: Battle, view: UnitsView, seconds: float) -> SimEvent:
 
 
 func test_an_aimed_turret_head_turns_to_its_target() -> void:
-	var c := _view_content({"base": "assets/towers/base.png", "muzzle": [8, 9, 10]}, {})
+	var c := _view_content({"base": _any_base(), "muzzle": _muzzle(8)}, {})
 	var made := _view_battle(c)
 	var b: Battle = made[0]
 	var view: UnitsView = made[1]
@@ -503,7 +545,7 @@ func test_an_aimed_turret_head_turns_to_its_target() -> void:
 
 
 func test_pulse_shots_leave_from_the_end_of_the_barrel() -> void:
-	var c := _view_content({"base": "assets/towers/base.png", "muzzle": [30, 30, 30]}, {})
+	var c := _view_content({"base": _any_base(), "muzzle": _muzzle(30, 0)}, {})
 	var made := _view_battle(c)
 	var b: Battle = made[0]
 	var view: UnitsView = made[1]
@@ -550,9 +592,9 @@ func test_barrel_lengths_fit_the_head_art() -> void:
 		for problem: String in _barrel_problems(d):
 			expect(false, problem)
 	var fixture := (Game.content.towers[0] as Dictionary).duplicate(true)
-	fixture["muzzle"] = [8, 9, 40]
+	fixture["muzzle"] = [Sprites.view_size(str(fixture["sprite"])).x + 8.0]
 	expect_eq(_barrel_problems(fixture).size(), 1, "a barrel longer than its art is reported")
-	fixture["muzzle"] = [8, 9, 10]
+	fixture["muzzle"] = [1.0]
 	expect(_barrel_problems(fixture).is_empty(), "a barrel that fits passes")
 
 

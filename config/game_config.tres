@@ -4,3 +4,15 @@
 
 [resource]
 script = ExtResource("1_cfg")
+touch_ui = "auto"
+min_touch_share = 0.134
+bottom_clear_fraction = 0.15
+tap_snap = 0.6
+confirm_spending = "touch"
+confirm_seconds = 3.0
+splash_image = ""
+splash_text = ""
+splash_seconds = 1.5
+splash_color = Color(0.07, 0.07, 0.14, 1)
+bot_hp_margin = 0.05
+min_flight_cells = 8.0

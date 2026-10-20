@@ -1,6 +1,6 @@
 # Godot Tower Defense: a CodePlate template
 
-> **Free CodePlate template, v1.3.0.** This repository mirrors the zip on [codeplate.io](https://codeplate.io/t/godot-tower-defense/).
+> **Free CodePlate template, v1.4.0.** This repository mirrors the zip on [codeplate.io](https://codeplate.io/t/godot-tower-defense/).
 > Press **Use this template** to start your own repository from it, or [download the zip](https://codeplate.io/t/godot-tower-defense/).
 > [All templates](https://codeplate.io/) · [Free License](https://codeplate.io/license/free/) · subscribers get it under the [Pro License](https://codeplate.io/license/pro/) with no credit.
 
@@ -15,7 +15,7 @@ A complete tower defense game for **Godot 4.7**, built so your AI agent can turn
 - **7 enemies:** grunts, fast runners, armored beetles, flyers that skip the path, splitters, and a boss.
 - **Waves:** a countdown between waves, with bonus gold for calling the next one early.
 - **Feel:** 1×/2×/3× speed (any speeds, fractions included), range rings, hit and splash effects, gold popups, shake on leaks.
-- **Controls:** mouse, touch and keyboard shortcuts.
+- **Controls:** mouse and keyboard shortcuts, and a touch layout for phones and tablets: thumb-sized buttons, nothing under the camera cutout or the gesture bar, a map scaled to the screen, two taps to spend gold, and Android's Back button handled on every screen.
 - **Progress:** saved stars, and each level unlocks the next.
 - **Settings and credits:** music and effects volume, fullscreen, reset progress, and a credits page.
 - **Content as data:** maps are plain **ASCII text**; towers, enemies and waves are **JSON**. It's the easiest content for an agent to edit.
@@ -23,8 +23,8 @@ A complete tower defense game for **Godot 4.7**, built so your AI agent can turn
 
 ## For your agent
 
-- `AGENTS.md`: the brief, with 12 step-by-step recipes (including more spawns and paths per map) and a full content reference.
-- A deterministic battle core with no nodes, and 35 headless checks covering every rule.
+- `AGENTS.md`: the brief, with 13 step-by-step recipes (including more spawns and paths per map) and a full content reference.
+- A deterministic battle core with no nodes, and over 70 headless checks covering every rule, every screen at four phone and tablet shapes, and the level curve.
 - **A balance bot.** It plays every level, and the checks fail if a level can't be won with lives to spare, or can be won without building anything.
 - Map validation that names the row and column of any mistake.
 - A screenshot tool that fast-forwards into a battle, so the agent can see what it changed.

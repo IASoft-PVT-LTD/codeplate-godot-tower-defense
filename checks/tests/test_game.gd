@@ -32,6 +32,30 @@ func _open_battle(index: int = 0) -> BattleScreen:
 	return s
 
 
+## Presses a menu button the way a player does: a second time if the first
+## press only armed it (two-tap spending, config `confirm_spending`).
+func _press(b: Button) -> void:
+	b.pressed.emit()
+	if Touch.is_armed(b):
+		b.pressed.emit()
+
+
+## The first tower the battle's level offers.
+func _offered(b: Battle) -> String:
+	for t: Dictionary in b.content.towers:
+		if b.level.allows(str(t["id"])):
+			return str(t["id"])
+	return ""
+
+
+## The first level that offers every tower (level JSON "towers"), or -1.
+func _level_with_every_tower() -> int:
+	for i: int in Game.content.levels.size():
+		if Game.content.levels[i].towers.is_empty():
+			return i
+	return -1
+
+
 ## Plays the battle with the bot's choices, through the screen's own event handling.
 func _autoplay(s: BattleScreen, max_seconds: float) -> void:
 	var cov := {}
@@ -77,7 +101,7 @@ func test_tapping_a_tile_and_a_tower_button_builds() -> void:
 	_sandbox()
 	var s := await _open_battle()
 	var cell := Bot.best_cell(s.battle, str(Game.content.towers[0]["id"]), {})
-	var at := BattleScreen.cell_to_screen(cell)
+	var at := s.cell_to_screen(cell)
 	mouse_button(at, true)
 	mouse_button(at, false)
 	await frames(2)
@@ -88,6 +112,10 @@ func test_tapping_a_tile_and_a_tower_button_builds() -> void:
 	mouse_button(center, true)
 	mouse_button(center, false)
 	await frames(2)
+	if s.menu.is_open() and Touch.is_armed(first): # two-tap spending: the first tap only armed it
+		mouse_button(center, true)
+		mouse_button(center, false)
+		await frames(2)
 	expect(s.battle.towers.has(cell), "the tower was built")
 	expect(s.battle.gold < gold, "and paid for")
 	expect(not s.menu.is_open(), "the menu closed")
@@ -97,7 +125,11 @@ func test_tapping_a_tile_and_a_tower_button_builds() -> void:
 
 func test_number_keys_build_every_tower() -> void:
 	_sandbox()
-	var s := await _open_battle()
+	var index := _level_with_every_tower()
+	if not expect(index >= 0, "a level offers every tower (leave out \"towers\" in its JSON)"):
+		_restore()
+		return
+	var s := await _open_battle(index)
 	s.battle.gold = 100000
 	var n := mini(Game.TOWER_KEYS, Game.content.towers.size())
 	var cell := Bot.best_cell(s.battle, str(Game.content.towers[0]["id"]), {})
@@ -115,19 +147,20 @@ func test_number_keys_build_every_tower() -> void:
 func test_tower_menu_upgrades_and_sells() -> void:
 	_sandbox()
 	var s := await _open_battle()
-	var cell := Bot.best_cell(s.battle, str(Game.content.towers[0]["id"]), {})
+	var id := _offered(s.battle)
+	var cell := Bot.best_cell(s.battle, id, {})
 	s.battle.gold = 1000
-	s.build(str(Game.content.towers[0]["id"]), cell)
+	s.build(id, cell)
 	s.tap_cell(cell)
 	await frames(1)
 	var buttons := s.menu.buttons()
 	expect_eq(buttons.size(), 3, "upgrade, sell, target")
-	buttons[0].pressed.emit()
+	_press(buttons[0])
 	expect_eq(s.battle.towers[cell].level, 2, "upgraded")
 	s.menu.buttons()[2].pressed.emit()
 	expect_eq(s.battle.towers[cell].target_mode, Battle.TARGET_MODES[1], "target mode cycled")
 	var gold := s.battle.gold
-	s.menu.buttons()[1].pressed.emit()
+	_press(s.menu.buttons()[1])
 	expect(not s.battle.towers.has(cell) and s.battle.gold > gold, "sold for gold")
 	s.queue_free()
 	_restore()

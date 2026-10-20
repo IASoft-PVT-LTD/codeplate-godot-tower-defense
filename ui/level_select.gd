@@ -1,18 +1,23 @@
 extends Control
 ## A card per level with its stars. A level opens once the one before it is
 ## won. Built in code so new levels in content/levels/ show up on their own.
+## The grid takes as many columns as fit the safe area (up to MAX_COLUMNS)
+## and scrolls when the levels don't fit; Back stays above the bottom strip.
+## Android Back goes to the title.
 
 const STAR := "assets/ui/star.png"
 const LOCK := "assets/ui/lock.png"
-const COLUMNS := 3
+const MAX_COLUMNS := 5
+const CARD := Vector2(140, 52)
 
 @onready var _grid: GridContainer = %Grid
 @onready var _stars: Label = %StarsTotal
 @onready var _back: Button = %BackButton
+@onready var _rows: VBoxContainer = $Rows
+@onready var _background: TextureRect = $Background
 
 
 func _ready() -> void:
-	_grid.columns = COLUMNS
 	_back.pressed.connect(func() -> void:
 		Audio.play(&"click")
 		Game.goto_title())
@@ -23,14 +28,43 @@ func _ready() -> void:
 		_grid.add_child(card)
 		if first == null and not card.disabled:
 			first = card
+	Touch.enlarge(self)
+	get_viewport().size_changed.connect(_fit)
+	_fit()
 	if first != null:
-		first.grab_focus.call_deferred()
+		Touch.focus_later(first)
 	Audio.play_music(&"title")
+
+
+## Covers the visible view; the rows stay inside the safe area, Back above
+## Game.bottom_limit(), and the grid takes as many columns as fit.
+func _fit() -> void:
+	if not is_inside_tree():
+		return
+	var vp := get_viewport()
+	_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	var safe := Game.safe_rect(vp)
+	var top := safe.position.y + 14.0 * minf(1.0, safe.size.y / 270.0)
+	_rows.position = Vector2(safe.position.x, top)
+	_rows.size = Vector2(safe.size.x, minf(safe.end.y - 8.0, Game.bottom_limit(vp)) - top)
+	var gap := float(_grid.get_theme_constant(&"h_separation"))
+	var card_w := CARD.x
+	if not _grid.get_children().is_empty():
+		card_w = (_grid.get_child(0) as Control).get_combined_minimum_size().x
+	var fit := floori((safe.size.x - 16.0 + gap) / (card_w + gap))
+	_grid.columns = clampi(fit, 1, mini(MAX_COLUMNS, maxi(1, _grid.get_child_count())))
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"pause"):
 		Game.goto_title()
+
+
+## Android Back: the title.
+func go_back() -> void:
+	Game.goto_title()
 
 
 ## The level cards (checks press them).
@@ -44,7 +78,7 @@ func cards() -> Array[Button]:
 func _card(index: int) -> Button:
 	var level := Game.content.levels[index]
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(140, 52)
+	b.custom_minimum_size = CARD
 	b.disabled = not Game.is_unlocked(index)
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

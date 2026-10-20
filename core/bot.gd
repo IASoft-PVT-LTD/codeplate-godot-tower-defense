@@ -74,9 +74,12 @@ static func _next_tower(b: Battle, order: int) -> String:
 	var list := b.content.bot_order
 	for i: int in list.size():
 		var id := list[(order + i) % list.size()]
-		if not b.content.get_entry(id).is_empty():
+		if not b.content.get_entry(id).is_empty() and b.level.allows(id):
 			return id
-	return "" if b.content.towers.is_empty() else str(b.content.towers[0]["id"])
+	for t: Dictionary in b.content.towers:
+		if b.level.allows(str(t["id"])):
+			return str(t["id"])
+	return ""
 
 
 ## The free buildable cell whose range covers the most path for this tower.

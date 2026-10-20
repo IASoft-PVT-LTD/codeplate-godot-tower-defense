@@ -3,6 +3,7 @@
   "start_gold": 300,
   "lives": 20,
   "hp_mult": 1.15,
+  "tip": "The Shadow Ogre comes in the last wave. Save gold for it.",
   "waves": [
     {
       "groups": [

@@ -103,6 +103,8 @@ func build_problem(tower_id: String, cell: Vector2i) -> String:
 		return "the battle is over"
 	if content.get_entry(tower_id).is_empty():
 		return "no tower \"%s\"" % tower_id
+	if not level.allows(tower_id):
+		return "not available on this level"
 	if map.kind(cell) != Map.Kind.BUILD:
 		return "can't build there"
 	if towers.has(cell):

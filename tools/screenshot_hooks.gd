@@ -12,6 +12,12 @@ extends RefCounted
 ##   menu=tower     battle: open the tower menu on the first tower
 ##   stars=N        levels: pretend every level has N stars (shows unlocked cards)
 ##   seed=N         battle seed (default 7)
+## Any screen:
+##   touch=1        the touch layout (thumb-sized buttons, the bottom strip
+##                  kept clear, two-tap building), as on a phone
+##   safe=L,T,R,B   pretend a phone's cutout and gesture bar: safe-area insets
+##                  in view units (left, top, right, bottom), e.g. with
+##                  size=2400x1080 touch=1 safe=24,0,0,10
 ##
 ## Uses a throwaway progress file, so real progress is never touched.
 ## A --script file compiles before autoloads exist, so this file must not name
@@ -32,6 +38,13 @@ func before_add(_node: Node, args: Dictionary, tree: SceneTree) -> void:
 	game.call("load_progress")
 	game.set("next_seed", int(args.get("seed", "7")))
 	game.set("level_index", int(args.get("level", "1")) - 1)
+	if args.get("touch", "0") == "1":
+		(game.get("config") as Resource).set("touch_ui", "always")
+	if args.has("safe"):
+		var n := str(args["safe"]).split_floats(",")
+		if n.size() == 4:
+			game.set("safe_override_on", true)
+			game.set("safe_override", Rect2(n[0], n[1], n[2], n[3]))
 	if args.has("stars"):
 		var content: Content = game.get("content")
 		for l: LevelData in content.levels:

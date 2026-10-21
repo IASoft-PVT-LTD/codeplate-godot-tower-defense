@@ -19,8 +19,10 @@ const SCAN_EXTENSIONS := ["gd", "tscn", "tres", "godot"]
 ## Files with these extensions are data, not Godot resources: exports leave them out unless included.
 const DATA_EXTENSIONS := ["json", "txt", "csv", "md", "xml", "yaml", "yml"]
 ## Folders whose data files never ship in a game (docs, the checks, tools, local output).
+## A folder holding a .gdignore is skipped too: Godot never imports it, so the
+## game can't be reading data from it.
 const NON_RUNTIME_DIRS := ["docs/", "checks/", "tools/", "shots/", "export/", "build/", "node_modules/",
-	"addons/codeplate/checks/", "addons/codeplate/tools/", "addons/codeplate/README.md"]
+	"store/", "android/", "addons/codeplate/checks/", "addons/codeplate/tools/", "addons/codeplate/README.md"]
 ## Licences a file in a game's assets.json may have.
 const ASSET_LICENSES := ["CodePlate-original", "CC0-1.0", "OFL-1.1", "user-owned"]
 ## Local output folders: never imported (a .gdignore inside) and never exported.
@@ -187,9 +189,21 @@ static func runtime_data_files() -> PackedStringArray:
 				skip = true
 		if "/" not in rel and rel not in ROOT_RUNTIME_FILES:
 			skip = true
+		if not skip and in_ignored_dir(rel):
+			skip = true
 		if not skip:
 			out.append(rel)
 	return out
+
+
+## Whether a folder on the way to `rel` (a path relative to res://) holds a .gdignore.
+static func in_ignored_dir(rel: String) -> bool:
+	var dir := rel.get_base_dir()
+	while not dir.is_empty():
+		if FileAccess.file_exists("res://%s/.gdignore" % dir):
+			return true
+		dir = dir.get_base_dir()
+	return false
 
 
 ## Whether `rel` (a path relative to res://) matches one of the comma-separated

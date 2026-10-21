@@ -15,6 +15,17 @@ Use when a game started from an older version of this template should take the f
 6. Read the behaviour changes for each version below and check the project against them.
 7. Run both check commands from `AGENTS.md`, then take the screenshots listed for each version.
 
+## 1.4.1 (add-on)
+
+**Changed:** the whole `addons/codeplate/` folder, `codeplate.json`, `ui/title.gd`.
+
+**Behaviour changes:**
+- **Back on the settings screen.** `CodePlateSettings.go_back()` goes one step back, as its Back button does: the Credits page goes to the settings page, the settings page closes the screen. The title's `go_back()` (Android Back) now calls it instead of pressing the screen's `BackButton` by name. A screen the project added that opens Settings should do the same.
+- **The settings fit check** is now `test_settings_fit_the_project_view` (it was `test_settings_fit_a_short_wide_view`). It fits the settings screen into the project's own viewport size, and also turned on its side when `display/window/handheld/orientation` is sensor, instead of always 1280×720. A portrait game can now raise its theme's button size without failing it. The Fullscreen, Credits and Reset row is only asked for on a view under 800 px tall.
+- **The runtime-data check** (`test_export_presets_ship_runtime_data`) no longer counts files under `store/`, `android/` or any folder that holds a `.gdignore` as game data, so store listing texts, art source packs and Godot's Android build template can sit in the project without being shipped. Data the game reads at runtime must stay outside those folders.
+
+**Look at:** `screen=credits`, then press Back once: the settings page should show; press it again and Settings should close.
+
 ## 1.4.0 (phones)
 
 **Changed:** `AGENTS.md`, `README.md`, `.gitignore`, `project.godot`, `export_presets.cfg`, `autoload/game.gd`, `config/game_config.gd`, `config/game_config.tres`, `core/battle.gd`, `core/bot.gd`, `core/content.gd`, `core/level_data.gd`, `game/battle_screen.gd`, `game/cell_menu.gd`, `game/hud.gd`, `game/overlays.gd`, `game/pause_menu.gd`, `game/result_panel.gd`, `game/units_view.gd`, `ui/title.gd`, `ui/level_select.gd`, `ui/level_select.tscn`, `tools/balance.gd`, `tools/screenshot_hooks.gd`, `checks/tests/test_battle.gd`, `checks/tests/test_content.gd`, `checks/tests/test_game.gd`, the template's levels (`content/levels/level_0*.json`: `towers`, `tip`, and level 5's `hp_mult`), and the docs (`docs/architecture.md`, `docs/content.md`, `docs/customization-map.md`, recipes `add-level`, `add-second-path`, `add-touch-polish`, `export-android`, `tune-balance`).

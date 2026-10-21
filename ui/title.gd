@@ -79,7 +79,7 @@ func _fit() -> void:
 func go_back() -> void:
 	var settings := get_node_or_null(^"CodePlateSettings") as CodePlateSettings
 	if settings != null and not settings.is_queued_for_deletion():
-		(settings.find_child("BackButton", true, false) as Button).pressed.emit()
+		settings.go_back()
 	elif _quit_panel.visible:
 		close_quit()
 	else:

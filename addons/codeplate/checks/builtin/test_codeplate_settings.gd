@@ -1,7 +1,8 @@
 extends CheckCase
 ## The shared settings screen (addons/codeplate/ui/settings_screen.gd) with a
 ## stand-in Game, so these run the same in every project and with its theme:
-## add_row(), the language row, and the layout on a short view.
+## add_row(), the language row, go_back(), and the layout in the project's own
+## view size.
 ## Part of the CodePlate add-on.
 
 
@@ -88,18 +89,48 @@ func test_language_row_only_with_languages() -> void:
 	await _close(s)
 
 
-func test_settings_fit_a_short_wide_view() -> void:
-	var game := FakeGame.new()
-	game.languages = {"en": "English", "es": "Español"}
-	var view := Rect2(Vector2.ZERO, Vector2(1280, 720))
-	var s := await _open(game, view.size)
-	var extra := Button.new()
-	extra.text = "Extra"
-	s.add_row(extra)
-	await frames(2)
-	for b: Button in s.find_children("*", "Button", true, false):
-		if b.is_visible_in_tree():
-			var r := b.get_global_rect()
-			expect(view.encloses(r), "%s fits inside a 1280x720 view (at %s)" % [b.name, r])
-	expect(s.find_child("ButtonsRow", true, false) != null, "Fullscreen, Credits and Reset share a row on a short view")
+## The views the game can have: the project's viewport size, and turned on its
+## side too when the phone may rotate (handheld orientation "sensor"). With
+## stretch aspect "expand" a real screen only adds to one side, so these are
+## the tightest.
+static func project_views() -> Array[Vector2]:
+	var w := float(ProjectSettings.get_setting("display/window/size/viewport_width", 1152))
+	var h := float(ProjectSettings.get_setting("display/window/size/viewport_height", 648))
+	var views: Array[Vector2] = [Vector2(w, h)]
+	if int(ProjectSettings.get_setting("display/window/handheld/orientation", 0)) == DisplayServer.SCREEN_SENSOR:
+		views.append(Vector2(h, w))
+	return views
+
+
+func test_settings_fit_the_project_view() -> void:
+	for size: Vector2 in project_views():
+		var game := FakeGame.new()
+		game.languages = {"en": "English", "es": "Español"}
+		var view := Rect2(Vector2.ZERO, size)
+		var s := await _open(game, view.size)
+		var extra := Button.new()
+		extra.text = "Extra"
+		s.add_row(extra)
+		await frames(2)
+		for b: Button in s.find_children("*", "Button", true, false):
+			if b.is_visible_in_tree():
+				var r := b.get_global_rect()
+				expect(view.encloses(r), "%s fits inside the project's %dx%d view (at %s)" % [b.name, size.x, size.y, r])
+		if size.y < CodePlateSettings.COMPACT_HEIGHT:
+			expect(s.find_child("ButtonsRow", true, false) != null, "Fullscreen, Credits and Reset share a row on a short view")
+		await _close(s)
+
+
+func test_go_back_steps_back_a_page() -> void:
+	var s := await _open(FakeGame.new(), Vector2(720, 1280))
+	var settings_page := s.find_child("SettingsPage", true, false) as Control
+	var credits_page := s.find_child("CreditsPage", true, false) as Control
+	var closed := [false]
+	s.closed.connect(func() -> void: closed[0] = true)
+	s.show_credits()
+	s.go_back()
+	expect(settings_page.visible and not credits_page.visible, "go_back on the credits page shows the settings page")
+	expect(not closed[0], "go_back on the credits page doesn't close the screen")
+	s.go_back()
+	expect(closed[0] and s.is_queued_for_deletion(), "go_back on the settings page closes the screen")
 	await _close(s)

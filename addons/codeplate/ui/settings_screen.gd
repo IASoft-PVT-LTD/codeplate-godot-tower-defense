@@ -28,6 +28,9 @@ extends Control
 ##   var s := CodePlateSettings.open(self)
 ##   s.add_row(my_difficulty_row)
 ##
+## Back: `go_back()` leaves the credits page, or closes the screen from the
+## settings page (the Back button and Esc call it; so should Android Back).
+##
 ## On a view under COMPACT_HEIGHT px tall, Fullscreen, Credits and Reset share one row.
 ##
 ## Credits: every line of res://CREDITS.md, except HTML comments (<!-- ... -->),
@@ -171,6 +174,17 @@ func show_credits() -> void:
 	_fit_credits.call_deferred()
 
 
+## One step back, as the Back button and Esc do: the credits page goes to the
+## settings page, the settings page closes the screen. For Android Back, the
+## screen that opened this one calls it while it is open.
+func go_back() -> void:
+	_click()
+	if _credits_page.visible:
+		show_settings()
+	else:
+		close()
+
+
 func close() -> void:
 	_save()
 	closed.emit()
@@ -213,12 +227,7 @@ func _ready() -> void:
 	_back = _button("Back")
 	_back.name = "BackButton"
 	_back.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_back.pressed.connect(func() -> void:
-		_click()
-		if _credits_page.visible:
-			show_settings()
-		else:
-			close())
+	_back.pressed.connect(go_back)
 	col.add_child(_back)
 	show_settings()
 
@@ -226,7 +235,7 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel"):
 		get_viewport().set_input_as_handled()
-		_back.pressed.emit()
+		go_back()
 
 
 func _build_settings(gap: int, compact: bool) -> Control:
